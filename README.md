@@ -140,18 +140,18 @@ To get a client ID and secret, we need to [register the app](https://github.com/
 - Name: node-tutorial
 - Type: Web application and/or Web API
 
-![]()
+![](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-wizard1.PNG)
 - Sign-on URL: http://localhost:8000
 - App ID URL: https://your_Office365_domain/node-tutorial (Replace 'your_Office365_domain' with your actual Office 365 domain!)
 
-![]()
+![](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-wizard-2.PNG)
 
 #### App configuration ####
 
 - Keys: 1 year.
 - Permissions to other applications: Office 365 Exchange Online, Delegated Permissions, "Read user's mail"
 
-![]()
+![](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-portal-3.PNG)
 
 Once this is complete you should have a client ID and a secret. Replace the `<YOUR CLIENT ID>` and `<YOUR CLIENT SECRET>` placeholders with these values and save your changes.
 
@@ -183,7 +183,7 @@ Save your changes and browse to [http://localhost:8000](http://localhost:8000). 
 
 The `<SOME GUID>` portion should match your client ID. Click on the link and (assuming you are not already signed in to Office 365 in your browser), you should be presented with a sign in page:
 
-![The Azure sign-in page.]()
+![The Azure sign-in page.](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-sign-in.PNG)
 
 Sign in with your Office 365 account. Your browser should redirect to back to our app, and you should see a lovely error:
 
@@ -421,7 +421,7 @@ To summarize the new code in the `mail` function:
 
 Save the changes and sign in to the app. You should now see a simple table of messages in your inbox.
 
-![An HTML table displaying the contents of an inbox.]()
+![An HTML table displaying the contents of an inbox.](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/inbox.PNG)
 
 ## Next Steps ##
 
