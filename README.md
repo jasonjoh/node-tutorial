@@ -87,16 +87,12 @@ Let's begin by replacing the "Hello world!" message with a signon link. To do th
 
 ### Updated `home` function ###
 
-    class ApplicationController < ActionController::Base
-      # Prevent CSRF attacks by raising an exception.
-      # For APIs, you may want to use :null_session instead.
-      protect_from_forgery with: :exception
-      
-      def home
-		# Display the login link.
-    	render html: '<a href="#">Log in and view my email</a>'.html_safe
-      end
-    end
+    function home(response, request) {
+      console.log("Request handler 'home' was called.");
+      response.writeHead(200, {"Content-Type": "text/html"});
+      response.write('<p>Please <a href="#">sign in</a> with your Office 365 account.</p>');
+      response.end();
+    }
 
 As you can see, our home page will be very simple. For now, the link doesn't do anything, but we'll fix that soon.
 
