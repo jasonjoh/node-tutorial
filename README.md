@@ -113,7 +113,7 @@ Now the library is installed and ready to use. Create a new file called `authHel
       authorizationPath: "/oauth2/authorize",
       tokenPath: "/oauth2/token"
     }
-    var oauth2 = require("simple-oauth2")(credentials)
+    var oauth2 = require("simple-oauth2")(credentials);
     
     function getAuthUrl() {
       var returnVal = oauth2.authCode.authorizeURL({
@@ -149,7 +149,7 @@ To get a client ID and secret, we need to [register the app](https://github.com/
 
 ![](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-portal-3.PNG)
 
-Once this is complete you should have a client ID and a secret. Replace the `<YOUR CLIENT ID>` and `<YOUR CLIENT SECRET>` placeholders with these values and save your changes.
+Once this is complete you should have a client ID and a secret. Replace the `YOUR CLIENT ID` and `YOUR CLIENT SECRET` placeholders with these values and save your changes.
 
 ### Back to coding ###
 
@@ -219,6 +219,8 @@ Restart the Node server and refresh your browser (or repeat the sign-in process)
 Let's add another helper function to `authHelper.js` called `getTokenFromCode`.
 
 #### `getTokenFromCode` in the `.\authHelper.js` file ####
+
+	var redirectUri = "http://localhost:8000/authorize";
 
     function getTokenFromCode(auth_code, resource, callback, response) {
       var token;
