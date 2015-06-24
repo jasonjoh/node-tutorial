@@ -26,8 +26,9 @@ Let's dive right in! Create an empty directory where you want to create your new
 	    route(handle, pathName, response, request);
       }
       
-      http.createServer(onRequest).listen(8000);
-      console.log("Server has started.");
+	  var port = 8000;
+      http.createServer(onRequest).listen(port);
+      console.log("Server has started. Listening on port: " + port + "...");
     }
     
     exports.start = start;
