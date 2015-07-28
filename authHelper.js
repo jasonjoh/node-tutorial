@@ -1,28 +1,33 @@
 // Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.
 var credentials = {
-  clientID: "YOUR CLIENT ID HERE",
-  clientSecret: "YOUR CLIENT SECRET HERE",
+  clientID: "YOUR APP ID HERE",
+  clientSecret: "YOUR APP PASSWORD HERE",
   site: "https://login.microsoftonline.com/common",
-  authorizationPath: "/oauth2/authorize",
-  tokenPath: "/oauth2/token"
+  authorizationPath: "/oauth2/v2.0/authorize",
+  tokenPath: "/oauth2/v2.0/token"
 }
-var redirectUri = "http://localhost:8000/authorize";
 var oauth2 = require("simple-oauth2")(credentials)
+
+var redirectUri = "http://localhost:8000/authorize";
+
+// The scopes the app requires
+var scopes = [ "https://outlook.office.com/mail.read" ];
 
 function getAuthUrl() {
   var returnVal = oauth2.authCode.authorizeURL({
-    redirect_uri: redirectUri
+    redirect_uri: redirectUri,
+    scope: scopes.join(" ")
   });
   console.log("Generated auth url: " + returnVal);
   return returnVal;
 }
 
-function getTokenFromCode(auth_code, resource, callback, response) {
+function getTokenFromCode(auth_code, callback, response) {
   var token;
   oauth2.authCode.getToken({
     code: auth_code,
     redirect_uri: redirectUri,
-    resource: resource
+    scope: scopes.join(" ")
     }, function (error, result) {
       if (error) {
         console.log("Access token error: ", error.message);

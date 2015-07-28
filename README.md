@@ -1,13 +1,13 @@
 # Getting Started with the Outlook Mail API and Node.js #
 
-The purpose of this guide is to walk through the process of creating a simple Node.js app that retrieves messages in Office 365. The source code in this repository is what you should end up with if you follow the steps outlined here.
+The purpose of this guide is to walk through the process of creating a simple Node.js app that retrieves messages in Office 365 or Outlook.com. The source code in this repository is what you should end up with if you follow the steps outlined here.
 
 ## Before you begin ##
 
 This guide assumes:
 
 - That you already have Node.js installed and working on your development machine. 
-- That you have an Office 365 tenant, with access to an administrator account in that tenant.
+- That you have an Office 365 tenant, with access to an administrator account in that tenant, **OR** an Outlook.com developer preview account.
 
 ## Create the app ##
 
@@ -82,7 +82,7 @@ Now that we've confirmed that the app is working, we're ready to do some real wo
 
 ## Designing the app ##
 
-Our app will be very simple. When a user visits the site, they will see a link to log in and view their email. Clicking that link will take them to the Azure login page where they can login with their Office 365 account and grant access to our app. Finally, they will be redirected back to our app, which will display a list of the most recent email in the user's inbox.
+Our app will be very simple. When a user visits the site, they will see a link to log in and view their email. Clicking that link will take them to the Azure login page where they can login with their Office 365 or Outlook.com account and grant access to our app. Finally, they will be redirected back to our app, which will display a list of the most recent email in the user's inbox.
 
 Let's begin by replacing the "Hello world!" message with a signon link. To do that, we'll modify the `home` function in `index.js`. Open this file in your favorite text editor. Update the `home` function to match the following.
 
@@ -91,7 +91,7 @@ Let's begin by replacing the "Hello world!" message with a signon link. To do th
     function home(response, request) {
       console.log("Request handler 'home' was called.");
       response.writeHead(200, {"Content-Type": "text/html"});
-      response.write('<p>Please <a href="#">sign in</a> with your Office 365 account.</p>');
+      response.write('<p>Please <a href="#">sign in</a> with your Office 365 or Outlook.com account.</p>');
       response.end();
     }
 
@@ -111,14 +111,20 @@ Now the library is installed and ready to use. Create a new file called `authHel
       clientID: "YOUR CLIENT ID HERE",
       clientSecret: "YOUR CLIENT SECRET HERE",
       site: "https://login.microsoftonline.com/common",
-      authorizationPath: "/oauth2/authorize",
-      tokenPath: "/oauth2/token"
+      authorizationPath: "/oauth2/v2.0/authorize",
+      tokenPath: "/oauth2/v2.0/token"
     }
     var oauth2 = require("simple-oauth2")(credentials);
+
+    var redirectUri = "http://localhost:8000/authorize";
+
+	// The scopes the app requires
+	var scopes = [ "https://outlook.office.com/mail.read" ];
     
     function getAuthUrl() {
       var returnVal = oauth2.authCode.authorizeURL({
-    	redirect_uri: "http://localhost:8000/authorize"
+    	redirect_uri: redirectUri,
+    	scope: scopes.join(" ")
       });
       console.log("Generated auth url: " + returnVal);
       return returnVal;
@@ -126,35 +132,29 @@ Now the library is installed and ready to use. Create a new file called `authHel
     
     exports.getAuthUrl = getAuthUrl;
 
-The first thing we do here is define our client ID and secret. We also define a redirect URI as a hard-coded value. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
+The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array only includes the `Mail.Read` scope, since we will only read the user's mail. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
 
 ### Generate a client ID and secret ###
 
-To get a client ID and secret, we need to [register the app](https://github.com/jasonjoh/office365-azure-guides/blob/master/RegisterAnAppInAzure.md). Use the following details to register.
+Before we proceed, we need to register our app to obtain a client ID and secret. Head over to https://apps.dev.microsoft.com to quickly get a client ID and secret. Using the sign in buttons, sign in with either your Microsoft account (Outlook.com), or your work or school account (Office 365).
 
-#### Create parameters ####
+![The Application Registration Portal Sign In Page](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/sign-in.PNG)
 
-- Name: node-tutorial
-- Type: Web application and/or Web API
+Once you're signed in, click the **Add an app** button. Enter `node-tutorial` for the name and click **Create application**. After the app is created, locate the **Application Secrets** section, and click the **Generate New Password** button. Copy the password now and save it to a safe place. Once you've copied the password, click **Ok**.
 
-![](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-wizard1.PNG)
-- Sign-on URL: http://localhost:8000
-- App ID URL: https://your_Office365_domain/node-tutorial (Replace 'your_Office365_domain' with your actual Office 365 domain!)
+![The new password dialog.](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/new-password.PNG)
 
-![](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-wizard-2.PNG)
+Locate the **Platforms** section, and click **Add Platform**. Choose **Web**, then enter `http://localhost:8000/authorize` under **Redirect URIs**. Click **Save** to complete the registration. Copy the **Application Id** and save it along with the password you copied earlier. We'll need those values soon.
 
-#### App configuration ####
+Here's what the details of your app registration should look like when you are done.
 
-- Keys: 1 year.
-- Permissions to other applications: Office 365 Exchange Online, Delegated Permissions, "Read user's mail"
+![The completed registration properties.](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/node-tutorial.PNG)
 
-![](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-portal-3.PNG)
-
-Once this is complete you should have a client ID and a secret. Replace the `YOUR CLIENT ID` and `YOUR CLIENT SECRET` placeholders with these values and save your changes.
+Replace the `YOUR APP ID HERE` with the application ID and `YOUR APP PASSWORD HERE` with the password you generated and save your changes.
 
 ### Back to coding ###
 
-Now that we have actual values for the client ID and secret, let's put the `simple-oauth`library to work. Modify the `home` function in the `index.js` file to use the `getAuthUrl` function to fill in the link. You'll need to require the `authHelper` file to gain access to this function.
+Now that we have actual values for the client ID and secret, let's put the `simple-oauth` library to work. Modify the `home` function in the `index.js` file to use the `getAuthUrl` function to fill in the link. You'll need to require the `authHelper` file to gain access to this function.
 
 #### Updated contents of the `.\index.js` file ####
 
@@ -176,13 +176,13 @@ Now that we have actual values for the client ID and secret, let's put the `simp
 
 Save your changes and browse to [http://localhost:8000](http://localhost:8000). If you hover over the link, it should look like:
 
-    https://login.microsoftonline.com/common/oauth2/authorize?client_id=<SOME GUID>&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize&response_type=code
+    https://login.microsoftonline.com/common/oauth2/authorize?redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize&scope=https%3A%2F%2Foutlook.office.com%2Fmail.read&response_type=code&client_id=<SOME GUID>
 
-The `<SOME GUID>` portion should match your client ID. Click on the link and (assuming you are not already signed in to Office 365 in your browser), you should be presented with a sign in page:
+The `<SOME GUID>` portion should match your client ID. Click on the link and  you should be presented with a sign in page:
 
 ![The Azure sign-in page.](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/azure-sign-in.PNG)
 
-Sign in with your Office 365 account. Your browser should redirect to back to our app, and you should see a lovely error:
+Sign in with your Office 365 or Outlook.com account. Your browser should redirect to back to our app, and you should see a lovely error:
 
     404 Not Found
 
@@ -221,14 +221,12 @@ Let's add another helper function to `authHelper.js` called `getTokenFromCode`.
 
 #### `getTokenFromCode` in the `.\authHelper.js` file ####
 
-	var redirectUri = "http://localhost:8000/authorize";
-
-    function getTokenFromCode(auth_code, resource, callback, response) {
+    function getTokenFromCode(auth_code, callback, response) {
       var token;
       oauth2.authCode.getToken({
 	    code: auth_code,
 	    redirect_uri: redirectUri,
-	    resource: resource
+	    scope: scopes.join(" ")
 	    }, function (error, result) {
 	      if (error) {
 		    console.log("Access token error: ", error.message);
@@ -255,7 +253,7 @@ Let's make sure that works. Modify the `authorize` function in the `index.js` fi
       var url_parts = url.parse(request.url, true);
       var code = url_parts.query.code;
       console.log("Code: " + code);
-      var token = authHelper.getTokenFromCode(code, 'https://outlook.office365.com/', tokenReceived, response);
+      var token = authHelper.getTokenFromCode(code, tokenReceived, response);
     }
 
 #### Callback function `tokenReceived` in `.\index.js` ####
@@ -274,9 +272,9 @@ Let's make sure that works. Modify the `authorize` function in the `index.js` fi
       }
     }
 
-If you save your changes, restart the server, and go through the sign-in process again, you should now see a long string of seemingly nonsensical characters. If everything's gone according to plan, that should be an access token. Copy the entire value and head over to http://jwt.calebb.net/. If you paste that value in, you should see a JSON representation of an access token. For details and alternative parsers, see [Validating your Office 365 Access Token](https://github.com/jasonjoh/office365-azure-guides/blob/master/ValidatingYourToken.md).
+If you save your changes, restart the server, and go through the sign-in process again, you should now see a long string of seemingly nonsensical characters. If everything's gone according to plan, that should be an access token.
 
-Once you're convinced that the token is what it should be, let's change our code to store the token in a session cookie instead of displaying it.
+Now let's change our code to store the token in a session cookie instead of displaying it.
 
 #### New version of `tokenReceived` function ####
     function tokenReceived(response, error, token) {
@@ -374,7 +372,7 @@ Then update the `mail` function to query the inbox.
 	    var token = cookie.substring(start, end);
 	    console.log("Token found in cookie: " + token);
     
-	    var outlookClient = new outlook.Microsoft.OutlookServices.Client('https://outlook.office365.com/api/v1.0', 
+	    var outlookClient = new outlook.Microsoft.OutlookServices.Client('https://outlook.office.com/api/v1.0', 
 	      authHelper.getAccessTokenFn(token));
     
 	    response.writeHead(200, {"Content-Type": "text/html"});
@@ -409,7 +407,7 @@ Then update the `mail` function to query the inbox.
 
 To summarize the new code in the `mail` function:
 
-- It creates an `OutlookServices.Client` object, passing it the API endpoint, `https://outlook.office365.com/api/v1.0`, and a pointer to the access token callback we implemented earlier.
+- It creates an `OutlookServices.Client` object, passing it the API endpoint, `https://outlook.office.com/api/v1.0`, and a pointer to the access token callback we implemented earlier.
 - It issues a GET request to the URL for inbox messages, with the following characteristics:
 	- It uses the `OrderBy()` function with a value of `DateTimeReceived desc` to sort the results by DateTimeReceived.
 	- It uses the `Select()` function to only request the `DateTimeReceived`, `From`, and `Subject` properties.

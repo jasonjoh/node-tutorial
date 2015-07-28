@@ -14,7 +14,7 @@ server.start(router.route, handle);
 function home(response, request) {
   console.log("Request handler 'home' was called.");
   response.writeHead(200, {"Content-Type": "text/html"});
-  response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 account.</p>');
+  response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 or Outlook.com account.</p>');
   response.end();
 }
 
@@ -26,7 +26,7 @@ function authorize(response, request) {
   var url_parts = url.parse(request.url, true);
   var code = url_parts.query.code;
   console.log("Code: " + code);
-  var token = authHelper.getTokenFromCode(code, 'https://outlook.office365.com/', tokenReceived, response);
+  var token = authHelper.getTokenFromCode(code, tokenReceived, response);
 }
 
 function tokenReceived(response, error, token) {
@@ -55,7 +55,7 @@ function mail(response, request) {
     var token = cookie.substring(start, end);
     console.log("Token found in cookie: " + token);
     
-    var outlookClient = new outlook.Microsoft.OutlookServices.Client('https://outlook.office365.com/api/v1.0', 
+    var outlookClient = new outlook.Microsoft.OutlookServices.Client('https://outlook.office.com/api/v1.0', 
       authHelper.getAccessTokenFn(token));
     
     response.writeHead(200, {"Content-Type": "text/html"});
