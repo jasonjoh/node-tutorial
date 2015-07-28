@@ -108,8 +108,8 @@ Now the library is installed and ready to use. Create a new file called `authHel
 ### Contents of the `.\authHelper.js` file ###
 
     var credentials = {
-      clientID: "YOUR CLIENT ID HERE",
-      clientSecret: "YOUR CLIENT SECRET HERE",
+      clientID: "YOUR APP ID HERE",
+      clientSecret: "YOUR APP PASSWORD HERE",
       site: "https://login.microsoftonline.com/common",
       authorizationPath: "/oauth2/v2.0/authorize",
       tokenPath: "/oauth2/v2.0/token"
@@ -170,7 +170,7 @@ Now that we have actual values for the client ID and secret, let's put the `simp
     function home(response, request) {
       console.log("Request handler 'home' was called.");
       response.writeHead(200, {"Content-Type": "text/html"});
-      response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 account.</p>');
+      response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 or Outlook.com account.</p>');
       response.end();
     }
 
