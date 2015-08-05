@@ -47,7 +47,7 @@ function getEmailFromIdToken(id_token) {
   var token_parts = id_token.split('.');
   
   // Token content is in the second part, in urlsafe base64
-  var encoded_token = new Buffer(token_parts[1].replace("-", "_").replace("+", "/"), 'base64');
+  var encoded_token = new Buffer(token_parts[1].replace("-", "+").replace("_", "/"), 'base64');
   
   var decoded_token = encoded_token.toString();
   
