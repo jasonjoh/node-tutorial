@@ -293,7 +293,7 @@ Let's make sure that works. Modify the `authorize` function in the `index.js` fi
       }
       else {
 	    response.writeHead(200, {"Content-Type": "text/html"});
-		response.write('<p>Email: ' + authHelper.getEmailFromIdToken(token.token.id_token + '</p>');
+		response.write('<p>Email: ' + authHelper.getEmailFromIdToken(token.token.id_token) + '</p>');
 	    response.write('<p>Access token: ' + token.token.access_token + '</p>');
 	    response.end();
       }
