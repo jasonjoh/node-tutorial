@@ -38,25 +38,30 @@ function tokenReceived(response, error, token) {
   }
   else {
     response.setHeader('Set-Cookie', ['node-tutorial-token =' + token.token.access_token + ';Max-Age=3600']);
+    response.setHeader('Set-Cookie', ['node-tutorial-email =' + authHelper.getEmailFromIdToken(token.token.id_token) + ';Max-Age=3600']);
     response.writeHead(302, {'Location': 'http://localhost:8000/mail'});
     response.end();
   }
 }
 
-function mail(response, request) {
-  var cookieName = 'node-tutorial-token';
-  var cookie = request.headers.cookie;
-  if (cookie && cookie.indexOf(cookieName) !== -1) {
-    console.log("Cookie: ", cookie);
-    // Found our token, extract it from the cookie value
-    var start = cookie.indexOf(cookieName) + cookieName.length + 1;
+function getValueFromCookie(valueName, cookie) {
+  if (cookie.indexOf(valueName) !== -1) {
+    var start = cookie.indexOf(valueName) + valueName.length + 1;
     var end = cookie.indexOf(';', start);
     end = end === -1 ? cookie.length : end;
-    var token = cookie.substring(start, end);
-    console.log("Token found in cookie: " + token);
+    return cookie.substring(start, end);
+  }
+}
+
+function mail(response, request) {
+  var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
+  console.log("Token found in cookie: ", token);
+  var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
+  console.log("Email found in cookie: ", email);
+  if (token) {
     
     var outlookClient = new outlook.Microsoft.OutlookServices.Client('https://outlook.office.com/api/v1.0', 
-      authHelper.getAccessTokenFn(token));
+      authHelper.getAccessTokenFn(token, email));
     
     response.writeHead(200, {"Content-Type": "text/html"});
     response.write('<div><span>Your inbox</span></div>');

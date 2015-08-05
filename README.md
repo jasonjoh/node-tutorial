@@ -119,7 +119,8 @@ Now the library is installed and ready to use. Create a new file called `authHel
     var redirectUri = "http://localhost:8000/authorize";
 
 	// The scopes the app requires
-	var scopes = [ "https://outlook.office.com/mail.read" ];
+	var scopes = [ "openid",
+				   "https://outlook.office.com/mail.read" ];
     
     function getAuthUrl() {
       var returnVal = oauth2.authCode.authorizeURL({
@@ -132,7 +133,7 @@ Now the library is installed and ready to use. Create a new file called `authHel
     
     exports.getAuthUrl = getAuthUrl;
 
-The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array only includes the `Mail.Read` scope, since we will only read the user's mail. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
+The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array includes the `openid` and `Mail.Read` scopes, since we will only read the user's mail. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
 
 ### Generate a client ID and secret ###
 
@@ -176,7 +177,7 @@ Now that we have actual values for the client ID and secret, let's put the `simp
 
 Save your changes and browse to [http://localhost:8000](http://localhost:8000). If you hover over the link, it should look like:
 
-    https://login.microsoftonline.com/common/oauth2/authorize?redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize&scope=https%3A%2F%2Foutlook.office.com%2Fmail.read&response_type=code&client_id=<SOME GUID>
+    https://login.microsoftonline.com/common/oauth2/authorize?redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize&scope=openid+https%3A%2F%2Foutlook.office.com%2Fmail.read&response_type=code&client_id=<SOME GUID>
 
 The `<SOME GUID>` portion should match your client ID. Click on the link and  you should be presented with a sign in page:
 
@@ -242,7 +243,32 @@ Let's add another helper function to `authHelper.js` called `getTokenFromCode`.
 
     exports.getTokenFromCode = getTokenFromCode;
 
-Let's make sure that works. Modify the `authorize` function in the `index.js` file to use this helper function and display the return value. Note that `getToken` function is asynchronous, so we need to implement a callback function to receive the results.
+### Getting the user's email address ###
+
+The token returned from `getTokenFromCode` doesn't just include the access token. It also includes an ID token. We can use this token to find out a few pieces of information about the logged on user. In this case, we want to get the user's email address. You'll see why we want this soon.
+
+Add a new function `getEmailFromIdToken` to `authHelper.js`.
+
+#### `getEmailFromIdToken` in the `.\authHelper.js` file ####
+
+	function getEmailFromIdToken(id_token) {
+	  // JWT is in three parts, separated by a '.'
+	  var token_parts = id_token.split('.');
+	  
+	  // Token content is in the second part, in urlsafe base64
+	  var encoded_token = new Buffer(token_parts[1].replace("-", "_").replace("+", "/"), 'base64');
+	  
+	  var decoded_token = encoded_token.toString();
+	  
+	  var jwt = JSON.parse(decoded_token);
+	  
+	  // Email is in the preferred_username field
+	  return jwt.preferred_username
+	}
+
+	exports.getEmailFromIdToken = getEmailFromIdToken;
+
+Let's make sure that works. Modify the `authorize` function in the `index.js` file to use these helper functions and display the return values. Note that `getToken` function is asynchronous, so we need to implement a callback function to receive the results.
 
 #### Updated `authorize` function in `.\index.js` ####
 
@@ -267,14 +293,15 @@ Let's make sure that works. Modify the `authorize` function in the `index.js` fi
       }
       else {
 	    response.writeHead(200, {"Content-Type": "text/html"});
+		response.write('<p>Email: ' + authHelper.getEmailFromIdToken(token.token.id_token + '</p>');
 	    response.write('<p>Access token: ' + token.token.access_token + '</p>');
 	    response.end();
       }
     }
 
-If you save your changes, restart the server, and go through the sign-in process again, you should now see a long string of seemingly nonsensical characters. If everything's gone according to plan, that should be an access token.
+If you save your changes, restart the server, and go through the sign-in process again, you should now see the user's email and a long string of seemingly nonsensical characters. If everything's gone according to plan, that should be an access token.
 
-Now let's change our code to store the token in a session cookie instead of displaying it.
+Now let's change our code to store the token and email in a session cookie instead of displaying them.
 
 #### New version of `tokenReceived` function ####
     function tokenReceived(response, error, token) {
@@ -286,6 +313,7 @@ Now let's change our code to store the token in a session cookie instead of disp
       }
       else {
 	    response.setHeader('Set-Cookie', ['node-tutorial-token =' + token.token.access_token + ';Max-Age=3600']);
+		response.setHeader('Set-Cookie', ['node-tutorial-email =' + authHelper.getEmailFromIdToken(token.token.id_token) + ';Max-Age=3600']);
 	    response.writeHead(200, {"Content-Type": "text/html"});
 	    response.write('<p>Access token saved in cookie.</p>');
 	    response.end();
@@ -303,20 +331,27 @@ Now that we can get an access token, we're in a good position to do something wi
     handle["/authorize"] = authorize;
     handle["/mail"] = mail;
 
+Now add a helper function to read cookie values.
+
+#### `getValueFromCookie` in `.\index.js`####
+
+	function getValueFromCookie(valueName, cookie) {
+	  if (cookie.indexOf(valueName) !== -1) {
+	    var start = cookie.indexOf(valueName) + valueName.length + 1;
+	    var end = cookie.indexOf(';', start);
+	    end = end === -1 ? cookie.length : end;
+	    return cookie.substring(start, end);
+	  }
+	}
+
 #### `mail` function in `.\index.js`####
 
     function mail(response, request) {
-      var cookieName = 'node-tutorial-token';
-      var cookie = request.headers.cookie;
-      if (cookie && cookie.indexOf(cookieName) !== -1) {
-	    console.log("Cookie: ", cookie);
-	    // Found our token, extract it from the cookie value
-	    var start = cookie.indexOf(cookieName) + cookieName.length + 1;
-	    var end = cookie.indexOf(';', start);
-	    end = end === -1 ? cookie.length : end;
-	    var token = cookie.substring(start, end);
-	    console.log("Token found in cookie: " + token);
-    
+	  var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
+	  console.log("Token found in cookie: ", token);
+	  var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
+	  console.log("Email found in cookie: ", email);
+      if (token) {
 	    response.writeHead(200, {"Content-Type": "text/html"});
 	    response.write('<p>Token retrieved from cookie: ' + token + '</p>');
 	    response.end();
@@ -334,19 +369,22 @@ In order to use the Mail API, install the [node-outlook library](https://github.
 
     npm install node-outlook
 
-The `node-outlook` library expects a callback function that it can use to request your access token. Let's implement that in `authHelper.js`.
+The `node-outlook` library expects a callback function that it can use to request your access token and user email. This is why we went to the trouble to extract the user's email from the ID token earlier. The `node-outlook` library uses this to set the `X-AnchorMailbox` header on API requests, which enables the API endpoint to route API calls to the appropriate backend mailbox server more efficiently.
+
+Let's implement the callback function in `authHelper.js`.
 
 #### Access token callbacks in `authHelper.js` ####
 	var outlook = require("node-outlook");
-    function getAccessToken(token) {
+    function getAccessToken(token, email) {
       var deferred = new outlook.Microsoft.Utility.Deferred();
-	  deferred.resolve(token);
+	  var user_info = { token: token, email: email };
+	  deferred.resolve(user_info);
       return deferred;
     }
     
-    function getAccessTokenFn(token) {
+    function getAccessTokenFn(token, email) {
       return function() {
-    	return getAccessToken(token);
+    	return getAccessToken(token, email);
       }
     }
 
@@ -360,50 +398,44 @@ Then update the `mail` function to query the inbox.
 
 #### New version of the `mail` function in `./index.js` ####
 
-    function mail(response, request) {
-      var cookieName = 'node-tutorial-token';
-      var cookie = request.headers.cookie;
-      if (cookie && cookie.indexOf(cookieName) !== -1) {
-	    console.log("Cookie: ", cookie);
-	    // Found our token, extract it from the cookie value
-	    var start = cookie.indexOf(cookieName) + cookieName.length + 1;
-	    var end = cookie.indexOf(';', start);
-	    end = end === -1 ? cookie.length : end;
-	    var token = cookie.substring(start, end);
-	    console.log("Token found in cookie: " + token);
-    
+	function mail(response, request) {
+	  var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
+	  console.log("Token found in cookie: ", token);
+	  var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
+	  console.log("Email found in cookie: ", email);
+	  if (token) {
+	    
 	    var outlookClient = new outlook.Microsoft.OutlookServices.Client('https://outlook.office.com/api/v1.0', 
-	      authHelper.getAccessTokenFn(token));
-    
+	      authHelper.getAccessTokenFn(token, email));
+	    
 	    response.writeHead(200, {"Content-Type": "text/html"});
 	    response.write('<div><span>Your inbox</span></div>');
 	    response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
-    
+	    
 	    outlookClient.me.messages.getMessages()
 	    .orderBy('DateTimeReceived desc')
-		.select('DateTimeReceived,From,Subject').fetchAll(10).then(function (result) {
+	    .select('DateTimeReceived,From,Subject').fetchAll(10).then(function (result) {
 	      result.forEach(function (message) {
-		    var from = message.from ? message.from.emailAddress.name : "NONE";
-		    response.write('<tr><td>' + from + 
-		      '</td><td>' + message.subject +
-		      '</td><td>' + message.dateTimeReceived.toString() + '</td></tr>');
+	        var from = message.from ? message.from.emailAddress.name : "NONE";
+	        response.write('<tr><td>' + from + 
+	          '</td><td>' + message.subject +
+	          '</td><td>' + message.dateTimeReceived.toString() + '</td></tr>');
 	      });
-  
+	      
 	      response.write('</table>');
 	      response.end();
-    	},function (error) {
+	    },function (error) {
 	      console.log(error);
 	      response.write("<p>ERROR: " + error + "</p>");
 	      response.end();
-    	});
-      }
-      else {
+	    });
+	  }
+	  else {
 	    response.writeHead(200, {"Content-Type": "text/html"});
 	    response.write('<p> No token found in cookie!</p>');
 	    response.end();
-      }
-    }
-
+	  }
+	}
 
 To summarize the new code in the `mail` function:
 
