@@ -312,8 +312,9 @@ Now let's change our code to store the token and email in a session cookie inste
 	    response.end();
       }
       else {
-	    response.setHeader('Set-Cookie', ['node-tutorial-token =' + token.token.access_token + ';Max-Age=3600']);
-		response.setHeader('Set-Cookie', ['node-tutorial-email =' + authHelper.getEmailFromIdToken(token.token.id_token) + ';Max-Age=3600']);
+	    var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
+                   	   'node-tutorial-email=' + authHelper.getEmailFromIdToken(token.token.id_token) + ';Max-Age=3600'];
+    	response.setHeader('Set-Cookie', cookies);
 	    response.writeHead(200, {"Content-Type": "text/html"});
 	    response.write('<p>Access token saved in cookie.</p>');
 	    response.end();
