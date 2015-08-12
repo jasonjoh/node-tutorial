@@ -10,9 +10,10 @@ This guide assumes:
 - That you have an Office 365 tenant, with access to an administrator account in that tenant.
 
 ## Run the app ##
-If you've downloaded this sample from dev.office.com,  simply run: `node index.js`
-Then open your browser to the specified port (i.e. http://localhost:8000).
 
+If you've downloaded this sample from http://dev.office.com/getting-started/office365apis, and you signed in and registered the app, you're all set! The download already includes the client ID and secret. Simply run: `node index.js`. Then open your browser to the specified port (i.e. http://localhost:8000).
+
+If you downloaded without signing in, or you downloaded directly from GitHub, then you'll need to follow the steps in **Implementing OAuth2** to register your app and get a client ID and secret.
 
 ## Or, create the app ##
 
