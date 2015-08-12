@@ -9,7 +9,12 @@ This guide assumes:
 - That you already have Node.js installed and working on your development machine. 
 - That you have an Office 365 tenant, with access to an administrator account in that tenant.
 
-## Create the app ##
+## Run the app ##
+If you've downloaded this sample from dev.office.com,  simply run: `node index.js`
+Then open your browser to the specified port (i.e. http://localhost:8000).
+
+
+## Or, create the app ##
 
 Let's dive right in! Create an empty directory where you want to create your new Node.js app. For the purposes of this guide I will assume the name of the directory is `node-tutorial`, but feel free to use any name you like. Using your favorite JavaScript editor, create a new file called `server.js`. Paste the following code into `server.js` and save it.
 
