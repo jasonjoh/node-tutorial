@@ -57,24 +57,9 @@ function getEmailFromIdToken(id_token) {
   return jwt.preferred_username
 }
 
-var outlook = require("node-outlook");
-function getAccessToken(token, email) {
-  var deferred = new outlook.Microsoft.Utility.Deferred();
-  var user_info = { token: token, email: email };
-  deferred.resolve(user_info);
-  return deferred;
-}
-
-function getAccessTokenFn(token, email) {
-  return function() {
-  return getAccessToken(token, email);
-  }
-}
-
 exports.getAuthUrl = getAuthUrl;
 exports.getEmailFromIdToken = getEmailFromIdToken;
-exports.getTokenFromCode = getTokenFromCode;
-exports.getAccessTokenFn = getAccessTokenFn;  
+exports.getTokenFromCode = getTokenFromCode; 
 
 /*
   MIT License: 

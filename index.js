@@ -70,7 +70,11 @@ function mail(response, request) {
     };
     
     outlook.base.setFiddlerEnabled(true);
-    outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0')
+    // Set the API endpoint to use the v2.0 endpoint
+    outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0');
+    // Set the anchor mailbox to the user's SMTP address
+    outlook.base.setAnchorMailbox(email);
+    
     outlook.mail.getMessages({token: token, odataParams: queryParams},
       function(error, result){
         if (error) {

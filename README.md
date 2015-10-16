@@ -370,27 +370,6 @@ In order to use the Mail API, install the [node-outlook library](https://github.
 
     npm install node-outlook
 
-The `node-outlook` library expects a callback function that it can use to request your access token and user email. This is why we went to the trouble to extract the user's email from the ID token earlier. The `node-outlook` library uses this to set the `X-AnchorMailbox` header on API requests, which enables the API endpoint to route API calls to the appropriate backend mailbox server more efficiently.
-
-Let's implement the callback function in `authHelper.js`.
-
-#### Access token callbacks in `authHelper.js` ####
-	var outlook = require("node-outlook");
-    function getAccessToken(token, email) {
-      var deferred = new outlook.Microsoft.Utility.Deferred();
-	  var user_info = { token: token, email: email };
-	  deferred.resolve(user_info);
-      return deferred;
-    }
-    
-    function getAccessTokenFn(token, email) {
-      return function() {
-    	return getAccessToken(token, email);
-      }
-    }
-
-	exports.getAccessTokenFn = getAccessTokenFn;
-
 Now we can modify the `mail` function to use this library and retrieve email. First, require the `node-outlook` library by adding the following line to `index.js`.
 
     var outlook = require("node-outlook");
@@ -414,7 +393,11 @@ Then update the `mail` function to query the inbox.
         '$top': 10
       };
       
-      outlook.base.set
+      // Set the API endpoint to use the v2.0 endpoint
+      outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0');
+      // Set the anchor mailbox to the user's SMTP address
+      outlook.base.setAnchorMailbox(email);
+      
       outlook.mail.getMessages({token: token, odataParams: queryParams},
         function(error, result){
           if (error) {
@@ -448,6 +431,7 @@ Then update the `mail` function to query the inbox.
 To summarize the new code in the `mail` function:
 
 - It uses the `outlook.base.setApiEndpoint` function to set the API endpoint, `https://outlook.office.com/api/v2.0`.
+- It uses the `outlook.base.setAnchorMailbox` function to set the anchor mailbox to the user's SMTP address. The library uses this to set the `X-AnchorMailbox` header on API requests, which enables the API endpoint to route API calls to the appropriate backend mailbox server more efficiently. This is why we went to the trouble to extract the user's email from the ID token earlier.
 - It uses the `outlook.mail.getMessages` function to get inbox messages, using the `parameters.odataParams` parameter to control the request:
 	- It uses the `$orderby` query parameter with a value of `ReceivedDateTime desc` to get the newest messages first.
 	- It uses the `$select` query parameter to only request the `ReceivedDateTime`, `From`, and `Subject` properties.
