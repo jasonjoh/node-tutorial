@@ -26,7 +26,7 @@ function authorize(response, request) {
   var url_parts = url.parse(request.url, true);
   var code = url_parts.query.code;
   console.log("Code: " + code);
-  var token = authHelper.getTokenFromCode(code, tokenReceived, response);
+  authHelper.getTokenFromCode(code, tokenReceived, response);
 }
 
 function tokenReceived(response, error, token) {
@@ -60,31 +60,39 @@ function mail(response, request) {
   var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
   console.log("Email found in cookie: ", email);
   if (token) {
-    
-    var outlookClient = new outlook.Microsoft.OutlookServices.Client('https://outlook.office.com/api/v1.0', 
-      authHelper.getAccessTokenFn(token, email));
-    
     response.writeHead(200, {"Content-Type": "text/html"});
-    response.write('<div><span>Your inbox</span></div>');
-    response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
+    response.write('<div><h1>Your inbox</h1></div>');
     
-    outlookClient.me.messages.getMessages()
-    .orderBy('DateTimeReceived desc')
-    .select('DateTimeReceived,From,Subject').fetchAll(10).then(function (result) {
-      result.forEach(function (message) {
-        var from = message.from ? message.from.emailAddress.name : "NONE";
-        response.write('<tr><td>' + from + 
-          '</td><td>' + message.subject +
-          '</td><td>' + message.dateTimeReceived.toString() + '</td></tr>');
+    var queryParams = {
+      '$select': 'Subject,ReceivedDateTime,From',
+      '$orderby': 'ReceivedDateTime desc',
+      '$top': 10
+    };
+    
+    outlook.base.setFiddlerEnabled(true);
+    outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0')
+    outlook.mail.getMessages({token: token, odataParams: queryParams},
+      function(error, result){
+        if (error) {
+          console.log('getMessages returned an error: ' + error);
+          response.write("<p>ERROR: " + error + "</p>");
+          response.end();
+        }
+        else if (result) {
+          console.log('getMessages returned ' + result.value.length + ' messages.');
+          response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
+          result.value.forEach(function(message) {
+            console.log('  Subject: ' + message.Subject);
+            var from = message.From ? message.From.EmailAddress.Name : "NONE";
+            response.write('<tr><td>' + from + 
+              '</td><td>' + message.Subject +
+              '</td><td>' + message.ReceivedDateTime.toString() + '</td></tr>');
+          });
+          
+          response.write('</table>');
+          response.end();
+        }
       });
-      
-      response.write('</table>');
-      response.end();
-    },function (error) {
-      console.log(error);
-      response.write("<p>ERROR: " + error + "</p>");
-      response.end();
-    });
   }
   else {
     response.writeHead(200, {"Content-Type": "text/html"});
