@@ -12,7 +12,9 @@ var redirectUri = "http://localhost:8000/authorize";
 
 // The scopes the app requires
 var scopes = [ "openid",
-               "https://outlook.office.com/mail.read" ];
+               "https://outlook.office.com/mail.read",
+               "https://outlook.office.com/calendars.read",
+               "https://outlook.office.com/contacts.read" ];
 
 function getAuthUrl() {
   var returnVal = oauth2.authCode.authorizeURL({
@@ -57,24 +59,9 @@ function getEmailFromIdToken(id_token) {
   return jwt.preferred_username
 }
 
-var outlook = require("node-outlook");
-function getAccessToken(token, email) {
-  var deferred = new outlook.Microsoft.Utility.Deferred();
-  var user_info = { token: token, email: email };
-  deferred.resolve(user_info);
-  return deferred;
-}
-
-function getAccessTokenFn(token, email) {
-  return function() {
-  return getAccessToken(token, email);
-  }
-}
-
 exports.getAuthUrl = getAuthUrl;
 exports.getEmailFromIdToken = getEmailFromIdToken;
-exports.getTokenFromCode = getTokenFromCode;
-exports.getAccessTokenFn = getAccessTokenFn;  
+exports.getTokenFromCode = getTokenFromCode; 
 
 /*
   MIT License: 

@@ -279,7 +279,7 @@ Let's make sure that works. Modify the `authorize` function in the `index.js` fi
       var url_parts = url.parse(request.url, true);
       var code = url_parts.query.code;
       console.log("Code: " + code);
-      var token = authHelper.getTokenFromCode(code, tokenReceived, response);
+      authHelper.getTokenFromCode(code, tokenReceived, response);
     }
 
 #### Callback function `tokenReceived` in `.\index.js` ####
@@ -370,27 +370,6 @@ In order to use the Mail API, install the [node-outlook library](https://github.
 
     npm install node-outlook
 
-The `node-outlook` library expects a callback function that it can use to request your access token and user email. This is why we went to the trouble to extract the user's email from the ID token earlier. The `node-outlook` library uses this to set the `X-AnchorMailbox` header on API requests, which enables the API endpoint to route API calls to the appropriate backend mailbox server more efficiently.
-
-Let's implement the callback function in `authHelper.js`.
-
-#### Access token callbacks in `authHelper.js` ####
-	var outlook = require("node-outlook");
-    function getAccessToken(token, email) {
-      var deferred = new outlook.Microsoft.Utility.Deferred();
-	  var user_info = { token: token, email: email };
-	  deferred.resolve(user_info);
-      return deferred;
-    }
-    
-    function getAccessTokenFn(token, email) {
-      return function() {
-    	return getAccessToken(token, email);
-      }
-    }
-
-	exports.getAccessTokenFn = getAccessTokenFn;
-
 Now we can modify the `mail` function to use this library and retrieve email. First, require the `node-outlook` library by adding the following line to `index.js`.
 
     var outlook = require("node-outlook");
@@ -405,31 +384,42 @@ Then update the `mail` function to query the inbox.
 	  var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
 	  console.log("Email found in cookie: ", email);
 	  if (token) {
-	    
-	    var outlookClient = new outlook.Microsoft.OutlookServices.Client('https://outlook.office.com/api/v1.0', 
-	      authHelper.getAccessTokenFn(token, email));
-	    
 	    response.writeHead(200, {"Content-Type": "text/html"});
-	    response.write('<div><span>Your inbox</span></div>');
-	    response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
-	    
-	    outlookClient.me.messages.getMessages()
-	    .orderBy('DateTimeReceived desc')
-	    .select('DateTimeReceived,From,Subject').fetchAll(10).then(function (result) {
-	      result.forEach(function (message) {
-	        var from = message.from ? message.from.emailAddress.name : "NONE";
-	        response.write('<tr><td>' + from + 
-	          '</td><td>' + message.subject +
-	          '</td><td>' + message.dateTimeReceived.toString() + '</td></tr>');
-	      });
-	      
-	      response.write('</table>');
-	      response.end();
-	    },function (error) {
-	      console.log(error);
-	      response.write("<p>ERROR: " + error + "</p>");
-	      response.end();
-	    });
+      response.write('<div><h1>Your inbox</h1></div>');
+      
+      var queryParams = {
+        '$select': 'Subject,ReceivedDateTime,From',
+        '$orderby': 'ReceivedDateTime desc',
+        '$top': 10
+      };
+      
+      // Set the API endpoint to use the v2.0 endpoint
+      outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0');
+      // Set the anchor mailbox to the user's SMTP address
+      outlook.base.setAnchorMailbox(email);
+      
+      outlook.mail.getMessages({token: token, odataParams: queryParams},
+        function(error, result){
+          if (error) {
+            console.log('getMessages returned an error: ' + error);
+            response.write("<p>ERROR: " + error + "</p>");
+            response.end();
+          }
+          else if (result) {
+            console.log('getMessages returned ' + result.value.length + ' messages.');
+            response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
+            result.value.forEach(function(message) {
+              console.log('  Subject: ' + message.Subject);
+              var from = message.From ? message.From.EmailAddress.Name : "NONE";
+              response.write('<tr><td>' + from + 
+                '</td><td>' + message.Subject +
+                '</td><td>' + message.ReceivedDateTime.toString() + '</td></tr>');
+            });
+            
+            response.write('</table>');
+            response.end();
+          }
+        });
 	  }
 	  else {
 	    response.writeHead(200, {"Content-Type": "text/html"});
@@ -440,11 +430,12 @@ Then update the `mail` function to query the inbox.
 
 To summarize the new code in the `mail` function:
 
-- It creates an `OutlookServices.Client` object, passing it the API endpoint, `https://outlook.office.com/api/v1.0`, and a pointer to the access token callback we implemented earlier.
-- It issues a GET request to the URL for inbox messages, with the following characteristics:
-	- It uses the `OrderBy()` function with a value of `DateTimeReceived desc` to sort the results by DateTimeReceived.
-	- It uses the `Select()` function to only request the `DateTimeReceived`, `From`, and `Subject` properties.
-	- It uses the `fetchAll()` function with a value of `10` to limit the results to the first 10.
+- It uses the `outlook.base.setApiEndpoint` function to set the API endpoint, `https://outlook.office.com/api/v2.0`.
+- It uses the `outlook.base.setAnchorMailbox` function to set the anchor mailbox to the user's SMTP address. The library uses this to set the `X-AnchorMailbox` header on API requests, which enables the API endpoint to route API calls to the appropriate backend mailbox server more efficiently. This is why we went to the trouble to extract the user's email from the ID token earlier.
+- It uses the `outlook.mail.getMessages` function to get inbox messages, using the `parameters.odataParams` parameter to control the request:
+	- It uses the `$orderby` query parameter with a value of `ReceivedDateTime desc` to get the newest messages first.
+	- It uses the `$select` query parameter to only request the `ReceivedDateTime`, `From`, and `Subject` properties.
+	- It uses the `$top` query parameter with a value of `10` to limit the results to the first 10.
 - It loops over the results and prints out the sender, the subject, and the date/time the message was received.
 
 ### Displaying the results ###
