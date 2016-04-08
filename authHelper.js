@@ -14,7 +14,8 @@ var redirectUri = "http://localhost:8000/authorize";
 var scopes = [ "openid",
                "https://outlook.office.com/mail.read",
                "https://outlook.office.com/calendars.read",
-               "https://outlook.office.com/contacts.read" ];
+               "https://outlook.office.com/contacts.read",
+               "profile" ];
 
 function getAuthUrl() {
   var returnVal = oauth2.authCode.authorizeURL({
