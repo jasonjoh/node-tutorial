@@ -15,8 +15,7 @@ var scopes = [ "openid",
                "profile", 
                "https://outlook.office.com/mail.read",
                "https://outlook.office.com/calendars.read",
-               "https://outlook.office.com/contacts.read",
-               "profile" ];
+               "https://outlook.office.com/contacts.read" ];
 
 function getAuthUrl() {
   var returnVal = oauth2.authCode.authorizeURL({
