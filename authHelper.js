@@ -12,6 +12,7 @@ var redirectUri = "http://localhost:8000/authorize";
 
 // The scopes the app requires
 var scopes = [ "openid",
+               "profile", 
                "https://outlook.office.com/mail.read",
                "https://outlook.office.com/calendars.read",
                "https://outlook.office.com/contacts.read",

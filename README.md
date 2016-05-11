@@ -15,23 +15,25 @@ Let's dive right in! Create an empty directory where you want to create your new
 
 ### Contents of the `.\server.js` file ###
 
-    var http = require("http");
-    var url = require("url");
-    
-    function start(route, handle) {
-      function onRequest(request, response) {
-	    var pathName = url.parse(request.url).pathname;
-	    console.log("Request for " + pathName + " received.");
-	    
-	    route(handle, pathName, response, request);
-      }
-      
-	  var port = 8000;
-      http.createServer(onRequest).listen(port);
-      console.log("Server has started. Listening on port: " + port + "...");
-    }
-    
-    exports.start = start;
+```js
+var http = require("http");
+var url = require("url");
+
+function start(route, handle) {
+  function onRequest(request, response) {
+  var pathName = url.parse(request.url).pathname;
+  console.log("Request for " + pathName + " received.");
+  
+  route(handle, pathName, response, request);
+  }
+  
+var port = 8000;
+  http.createServer(onRequest).listen(port);
+  console.log("Server has started. Listening on port: " + port + "...");
+}
+
+exports.start = start;
+```
 
 If you're familiar with Node.js, this is nothing new for you. If you're new to it, this is basic code to allow Node to run a web server listening on port 8000. When requests come in, it sends them to the `route` function, which we need to implement!
 
@@ -39,38 +41,42 @@ Create a new file called `router.js`, and add the following code.
 
 ### Contents of the `.\router.js` file ###
 
-    function route(handle, pathname, response, request) {
-      console.log("About to route a request for " + pathname);
-      if (typeof handle[pathname] === 'function') {
-	    return handle[pathname](response, request);
-      } else {
-		    console.log("No request handler found for " + pathname);
-		    response.writeHead(404 ,{"Content-Type": "text/plain"});
-		    response.write("404 Not Found");
-		    response.end();
-	      }
+```js
+function route(handle, pathname, response, request) {
+  console.log("About to route a request for " + pathname);
+  if (typeof handle[pathname] === 'function') {
+  return handle[pathname](response, request);
+  } else {
+    console.log("No request handler found for " + pathname);
+    response.writeHead(404 ,{"Content-Type": "text/plain"});
+    response.write("404 Not Found");
+    response.end();
     }
-    
-    exports.route = route;
+}
+
+exports.route = route;
+```
 
 This code looks up a function to call based on the requested path. It uses the `handle` array, which we haven't defined yet. Create a new file called `index.js`, and add the following code.
 
 ### Contents of the `.\index.js` file ###
 
-    var server = require("./server");
-    var router = require("./router");
-    
-    var handle = {};
-    handle["/"] = home;
-    
-    server.start(router.route, handle);
-    
-    function home(response, request) {
-      console.log("Request handler 'home' was called.");
-      response.writeHead(200, {"Content-Type": "text/html"});
-      response.write('<p>Hello world!</p>');
-      response.end();
-    }
+```js
+var server = require("./server");
+var router = require("./router");
+
+var handle = {};
+handle["/"] = home;
+
+server.start(router.route, handle);
+
+function home(response, request) {
+  console.log("Request handler 'home' was called.");
+  response.writeHead(200, {"Content-Type": "text/html"});
+  response.write('<p>Hello world!</p>');
+  response.end();
+}
+```
 
 At this point, you should have a working app. Open a command prompt to the directory where your files are located, and enter the following command.
 
@@ -88,12 +94,14 @@ Let's begin by replacing the "Hello world!" message with a signon link. To do th
 
 ### Updated `home` function ###
 
-    function home(response, request) {
-      console.log("Request handler 'home' was called.");
-      response.writeHead(200, {"Content-Type": "text/html"});
-      response.write('<p>Please <a href="#">sign in</a> with your Office 365 or Outlook.com account.</p>');
-      response.end();
-    }
+```js
+function home(response, request) {
+  console.log("Request handler 'home' was called.");
+  response.writeHead(200, {"Content-Type": "text/html"});
+  response.write('<p>Please <a href="#">sign in</a> with your Office 365 or Outlook.com account.</p>');
+  response.end();
+}
+```
 
 As you can see, our home page will be very simple. For now, the link doesn't do anything, but we'll fix that soon.
 
@@ -107,33 +115,36 @@ Now the library is installed and ready to use. Create a new file called `authHel
 
 ### Contents of the `.\authHelper.js` file ###
 
-    var credentials = {
-      clientID: "YOUR APP ID HERE",
-      clientSecret: "YOUR APP PASSWORD HERE",
-      site: "https://login.microsoftonline.com/common",
-      authorizationPath: "/oauth2/v2.0/authorize",
-      tokenPath: "/oauth2/v2.0/token"
-    }
-    var oauth2 = require("simple-oauth2")(credentials);
+```js
+var credentials = {
+  clientID: "YOUR APP ID HERE",
+  clientSecret: "YOUR APP PASSWORD HERE",
+  site: "https://login.microsoftonline.com/common",
+  authorizationPath: "/oauth2/v2.0/authorize",
+  tokenPath: "/oauth2/v2.0/token"
+}
+var oauth2 = require("simple-oauth2")(credentials);
 
-    var redirectUri = "http://localhost:8000/authorize";
+var redirectUri = "http://localhost:8000/authorize";
 
-	// The scopes the app requires
-	var scopes = [ "openid",
-				   "https://outlook.office.com/mail.read" ];
+// The scopes the app requires
+var scopes = [ "openid",
+               "profile",
+               "https://outlook.office.com/mail.read" ];
     
-    function getAuthUrl() {
-      var returnVal = oauth2.authCode.authorizeURL({
-    	redirect_uri: redirectUri,
-    	scope: scopes.join(" ")
-      });
-      console.log("Generated auth url: " + returnVal);
-      return returnVal;
-    }
-    
-    exports.getAuthUrl = getAuthUrl;
+function getAuthUrl() {
+  var returnVal = oauth2.authCode.authorizeURL({
+  redirect_uri: redirectUri,
+  scope: scopes.join(" ")
+  });
+  console.log("Generated auth url: " + returnVal);
+  return returnVal;
+}
 
-The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array includes the `openid` and `Mail.Read` scopes, since we will only read the user's mail. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
+exports.getAuthUrl = getAuthUrl;
+```
+
+The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array includes the `openid`, `profile`, and `Mail.Read` scopes, since we will only read the user's mail. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
 
 ### Generate a client ID and secret ###
 
@@ -159,25 +170,27 @@ Now that we have actual values for the client ID and secret, let's put the `simp
 
 #### Updated contents of the `.\index.js` file ####
 
-    var server = require("./server");
-    var router = require("./router");
-    var authHelper = require("./authHelper");
-    
-    var handle = {};
-    handle["/"] = home;
-    
-    server.start(router.route, handle);
-    
-    function home(response, request) {
-      console.log("Request handler 'home' was called.");
-      response.writeHead(200, {"Content-Type": "text/html"});
-      response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 or Outlook.com account.</p>');
-      response.end();
-    }
+```js
+var server = require("./server");
+var router = require("./router");
+var authHelper = require("./authHelper");
+
+var handle = {};
+handle["/"] = home;
+
+server.start(router.route, handle);
+
+function home(response, request) {
+  console.log("Request handler 'home' was called.");
+  response.writeHead(200, {"Content-Type": "text/html"});
+  response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 or Outlook.com account.</p>');
+  response.end();
+}
+```
 
 Save your changes and browse to [http://localhost:8000](http://localhost:8000). If you hover over the link, it should look like:
 
-    https://login.microsoftonline.com/common/oauth2/authorize?redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize&scope=openid+https%3A%2F%2Foutlook.office.com%2Fmail.read&response_type=code&client_id=<SOME GUID>
+    https://login.microsoftonline.com/common/oauth2/authorize?redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize&scope=openid+profile+https%3A%2F%2Foutlook.office.com%2Fmail.read&response_type=code&client_id=<SOME GUID>
 
 The `<SOME GUID>` portion should match your client ID. Click on the link and  you should be presented with a sign in page:
 
@@ -195,26 +208,30 @@ First, let's add a route for the `/authorize` path to the `handle` array in `ind
 
 #### Updated handle array in `.\index.js`####
 
-    var handle = {};
-    handle["/"] = home;
-    handle["/authorize"] = authorize;
+```js
+var handle = {};
+handle["/"] = home;
+handle["/authorize"] = authorize;
+```
 
 The added line tells our router that when a GET request comes in for `/authorize`, invoke the `authorize` function. So to make this work, we need to implement that function. Add the following function to `index.js`.
 
 #### `authorize` function ####
 
-    var url = require("url");
-    function authorize(response, request) {
-      console.log("Request handler 'authorize' was called.");
-      
-      // The authorization code is passed as a query parameter
-      var url_parts = url.parse(request.url, true);
-      var code = url_parts.query.code;
-      console.log("Code: " + code);
-      response.writeHead(200, {"Content-Type": "text/html"});
-      response.write('<p>Received auth code: ' + code + '</p>');
-      response.end();
-    }
+```js
+var url = require("url");
+function authorize(response, request) {
+  console.log("Request handler 'authorize' was called.");
+  
+  // The authorization code is passed as a query parameter
+  var url_parts = url.parse(request.url, true);
+  var code = url_parts.query.code;
+  console.log("Code: " + code);
+  response.writeHead(200, {"Content-Type": "text/html"});
+  response.write('<p>Received auth code: ' + code + '</p>');
+  response.end();
+}
+```
 
 Restart the Node server and refresh your browser (or repeat the sign-in process). Now instead of an error, you should see the value of the authorization code printed on the screen. We're getting closer, but that's still not very useful. Let's actually do something with that code.
 
@@ -222,26 +239,28 @@ Let's add another helper function to `authHelper.js` called `getTokenFromCode`.
 
 #### `getTokenFromCode` in the `.\authHelper.js` file ####
 
-    function getTokenFromCode(auth_code, callback, response) {
-      var token;
-      oauth2.authCode.getToken({
-	    code: auth_code,
-	    redirect_uri: redirectUri,
-	    scope: scopes.join(" ")
-	    }, function (error, result) {
-	      if (error) {
-		    console.log("Access token error: ", error.message);
-		    callback(response, error, null);
-	      }
-	      else {
-		    token = oauth2.accessToken.create(result);
-		    console.log("Token created: ", token.token);
-		    callback(response, null, token);
-	      }
-	    });
+```js
+function getTokenFromCode(auth_code, callback, response) {
+  var token;
+  oauth2.authCode.getToken({
+  code: auth_code,
+  redirect_uri: redirectUri,
+  scope: scopes.join(" ")
+  }, function (error, result) {
+    if (error) {
+    console.log("Access token error: ", error.message);
+    callback(response, error, null);
     }
+    else {
+    token = oauth2.accessToken.create(result);
+    console.log("Token created: ", token.token);
+    callback(response, null, token);
+    }
+  });
+}
 
-    exports.getTokenFromCode = getTokenFromCode;
+exports.getTokenFromCode = getTokenFromCode;
+```
 
 ### Getting the user's email address ###
 
@@ -251,75 +270,84 @@ Add a new function `getEmailFromIdToken` to `authHelper.js`.
 
 #### `getEmailFromIdToken` in the `.\authHelper.js` file ####
 
-	function getEmailFromIdToken(id_token) {
-	  // JWT is in three parts, separated by a '.'
-	  var token_parts = id_token.split('.');
-	  
-	  // Token content is in the second part, in urlsafe base64
-	  var encoded_token = new Buffer(token_parts[1].replace("-", "_").replace("+", "/"), 'base64');
-	  
-	  var decoded_token = encoded_token.toString();
-	  
-	  var jwt = JSON.parse(decoded_token);
-	  
-	  // Email is in the preferred_username field
-	  return jwt.preferred_username
-	}
+```js
+function getEmailFromIdToken(id_token) {
+  // JWT is in three parts, separated by a '.'
+  var token_parts = id_token.split('.');
+  
+  // Token content is in the second part, in urlsafe base64
+  var encoded_token = new Buffer(token_parts[1].replace("-", "_").replace("+", "/"), 'base64');
+  
+  var decoded_token = encoded_token.toString();
+  
+  var jwt = JSON.parse(decoded_token);
+  
+  // Email is in the preferred_username field
+  return jwt.preferred_username
+}
 
-	exports.getEmailFromIdToken = getEmailFromIdToken;
+exports.getEmailFromIdToken = getEmailFromIdToken;
+```
 
 Let's make sure that works. Modify the `authorize` function in the `index.js` file to use these helper functions and display the return values. Note that `getToken` function is asynchronous, so we need to implement a callback function to receive the results.
 
 #### Updated `authorize` function in `.\index.js` ####
 
-    function authorize(response, request) {
-      console.log("Request handler 'authorize' was called.");
-      
-      // The authorization code is passed as a query parameter
-      var url_parts = url.parse(request.url, true);
-      var code = url_parts.query.code;
-      console.log("Code: " + code);
-      authHelper.getTokenFromCode(code, tokenReceived, response);
-    }
+```js
+function authorize(response, request) {
+  console.log("Request handler 'authorize' was called.");
+  
+  // The authorization code is passed as a query parameter
+  var url_parts = url.parse(request.url, true);
+  var code = url_parts.query.code;
+  console.log("Code: " + code);
+  authHelper.getTokenFromCode(code, tokenReceived, response);
+}
+```
 
 #### Callback function `tokenReceived` in `.\index.js` ####
 
-    function tokenReceived(response, error, token) {
-      if (error) {
-	    console.log("Access token error: ", error.message);
-	    response.writeHead(200, {"Content-Type": "text/html"});
-	    response.write('<p>ERROR: ' + error + '</p>');
-	    response.end();
-      }
-      else {
-	    response.writeHead(200, {"Content-Type": "text/html"});
-		response.write('<p>Email: ' + authHelper.getEmailFromIdToken(token.token.id_token) + '</p>');
-	    response.write('<p>Access token: ' + token.token.access_token + '</p>');
-	    response.end();
-      }
-    }
+```js
+function tokenReceived(response, error, token) {
+  if (error) {
+  console.log("Access token error: ", error.message);
+  response.writeHead(200, {"Content-Type": "text/html"});
+  response.write('<p>ERROR: ' + error + '</p>');
+  response.end();
+  }
+  else {
+  response.writeHead(200, {"Content-Type": "text/html"});
+response.write('<p>Email: ' + authHelper.getEmailFromIdToken(token.token.id_token) + '</p>');
+  response.write('<p>Access token: ' + token.token.access_token + '</p>');
+  response.end();
+  }
+}
+```
 
 If you save your changes, restart the server, and go through the sign-in process again, you should now see the user's email and a long string of seemingly nonsensical characters. If everything's gone according to plan, that should be an access token.
 
 Now let's change our code to store the token and email in a session cookie instead of displaying them.
 
 #### New version of `tokenReceived` function ####
-    function tokenReceived(response, error, token) {
-      if (error) {
-	    console.log("Access token error: ", error.message);
-	    response.writeHead(200, {"Content-Type": "text/html"});
-	    response.write('<p>ERROR: ' + error + '</p>');
-	    response.end();
-      }
-      else {
-	    var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
-                   	   'node-tutorial-email=' + authHelper.getEmailFromIdToken(token.token.id_token) + ';Max-Age=3600'];
-    	response.setHeader('Set-Cookie', cookies);
-	    response.writeHead(200, {"Content-Type": "text/html"});
-	    response.write('<p>Access token saved in cookie.</p>');
-	    response.end();
-      }
-    }
+
+```js
+function tokenReceived(response, error, token) {
+  if (error) {
+  console.log("Access token error: ", error.message);
+  response.writeHead(200, {"Content-Type": "text/html"});
+  response.write('<p>ERROR: ' + error + '</p>');
+  response.end();
+  }
+  else {
+  var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
+                    'node-tutorial-email=' + authHelper.getEmailFromIdToken(token.token.id_token) + ';Max-Age=3600'];
+  response.setHeader('Set-Cookie', cookies);
+  response.writeHead(200, {"Content-Type": "text/html"});
+  response.write('<p>Access token saved in cookie.</p>');
+  response.end();
+  }
+}
+```
 
 ## Using the Mail API ##
 
@@ -327,42 +355,48 @@ Now that we can get an access token, we're in a good position to do something wi
 
 #### Updated handle array in `.\index.js`####
 
-    var handle = {};
-    handle["/"] = home;
-    handle["/authorize"] = authorize;
-    handle["/mail"] = mail;
+```js
+var handle = {};
+handle["/"] = home;
+handle["/authorize"] = authorize;
+handle["/mail"] = mail;
+```
 
 Now add a helper function to read cookie values.
 
 #### `getValueFromCookie` in `.\index.js`####
 
-	function getValueFromCookie(valueName, cookie) {
-	  if (cookie.indexOf(valueName) !== -1) {
-	    var start = cookie.indexOf(valueName) + valueName.length + 1;
-	    var end = cookie.indexOf(';', start);
-	    end = end === -1 ? cookie.length : end;
-	    return cookie.substring(start, end);
-	  }
-	}
+```js
+function getValueFromCookie(valueName, cookie) {
+  if (cookie.indexOf(valueName) !== -1) {
+    var start = cookie.indexOf(valueName) + valueName.length + 1;
+    var end = cookie.indexOf(';', start);
+    end = end === -1 ? cookie.length : end;
+    return cookie.substring(start, end);
+  }
+}
+```
 
 #### `mail` function in `.\index.js`####
 
-    function mail(response, request) {
-	  var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
-	  console.log("Token found in cookie: ", token);
-	  var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-	  console.log("Email found in cookie: ", email);
-      if (token) {
-	    response.writeHead(200, {"Content-Type": "text/html"});
-	    response.write('<p>Token retrieved from cookie: ' + token + '</p>');
-	    response.end();
-      }
-      else {
-	    response.writeHead(200, {"Content-Type": "text/html"});
-	    response.write('<p> No token found in cookie!</p>');
-	    response.end();
-      }
-    }
+```js
+function mail(response, request) {
+  var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
+  console.log("Token found in cookie: ", token);
+  var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
+  console.log("Email found in cookie: ", email);
+  if (token) {
+    response.writeHead(200, {"Content-Type": "text/html"});
+    response.write('<p>Token retrieved from cookie: ' + token + '</p>');
+    response.end();
+  }
+  else {
+    response.writeHead(200, {"Content-Type": "text/html"});
+    response.write('<p> No token found in cookie!</p>');
+    response.end();
+  }
+}
+```
 
 For now all this does is read the token back from the cookie and display it. Save your changes, restart the server, and go through the signon process again. You should see the token displayed. Now that we know we have access to the token in the `mail` function, we're ready to call the Mail API.
 
@@ -378,55 +412,57 @@ Then update the `mail` function to query the inbox.
 
 #### New version of the `mail` function in `./index.js` ####
 
-	function mail(response, request) {
-	  var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
-	  console.log("Token found in cookie: ", token);
-	  var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-	  console.log("Email found in cookie: ", email);
-	  if (token) {
-	    response.writeHead(200, {"Content-Type": "text/html"});
-      response.write('<div><h1>Your inbox</h1></div>');
-      
-      var queryParams = {
-        '$select': 'Subject,ReceivedDateTime,From',
-        '$orderby': 'ReceivedDateTime desc',
-        '$top': 10
-      };
-      
-      // Set the API endpoint to use the v2.0 endpoint
-      outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0');
-      // Set the anchor mailbox to the user's SMTP address
-      outlook.base.setAnchorMailbox(email);
-      
-      outlook.mail.getMessages({token: token, odataParams: queryParams},
-        function(error, result){
-          if (error) {
-            console.log('getMessages returned an error: ' + error);
-            response.write("<p>ERROR: " + error + "</p>");
-            response.end();
-          }
-          else if (result) {
-            console.log('getMessages returned ' + result.value.length + ' messages.');
-            response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
-            result.value.forEach(function(message) {
-              console.log('  Subject: ' + message.Subject);
-              var from = message.From ? message.From.EmailAddress.Name : "NONE";
-              response.write('<tr><td>' + from + 
-                '</td><td>' + message.Subject +
-                '</td><td>' + message.ReceivedDateTime.toString() + '</td></tr>');
-            });
-            
-            response.write('</table>');
-            response.end();
-          }
-        });
-	  }
-	  else {
-	    response.writeHead(200, {"Content-Type": "text/html"});
-	    response.write('<p> No token found in cookie!</p>');
-	    response.end();
-	  }
-	}
+```js
+function mail(response, request) {
+  var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
+  console.log("Token found in cookie: ", token);
+  var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
+  console.log("Email found in cookie: ", email);
+  if (token) {
+    response.writeHead(200, {"Content-Type": "text/html"});
+    response.write('<div><h1>Your inbox</h1></div>');
+    
+    var queryParams = {
+      '$select': 'Subject,ReceivedDateTime,From',
+      '$orderby': 'ReceivedDateTime desc',
+      '$top': 10
+    };
+    
+    // Set the API endpoint to use the v2.0 endpoint
+    outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0');
+    // Set the anchor mailbox to the user's SMTP address
+    outlook.base.setAnchorMailbox(email);
+    
+    outlook.mail.getMessages({token: token, odataParams: queryParams},
+      function(error, result){
+        if (error) {
+          console.log('getMessages returned an error: ' + error);
+          response.write("<p>ERROR: " + error + "</p>");
+          response.end();
+        }
+        else if (result) {
+          console.log('getMessages returned ' + result.value.length + ' messages.');
+          response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
+          result.value.forEach(function(message) {
+            console.log('  Subject: ' + message.Subject);
+            var from = message.From ? message.From.EmailAddress.Name : "NONE";
+            response.write('<tr><td>' + from + 
+              '</td><td>' + message.Subject +
+              '</td><td>' + message.ReceivedDateTime.toString() + '</td></tr>');
+          });
+          
+          response.write('</table>');
+          response.end();
+        }
+      });
+  }
+  else {
+    response.writeHead(200, {"Content-Type": "text/html"});
+    response.write('<p> No token found in cookie!</p>');
+    response.end();
+  }
+}
+```
 
 To summarize the new code in the `mail` function:
 
