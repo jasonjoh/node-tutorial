@@ -1,27 +1,28 @@
 // Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.
 var credentials = {
-  clientID: "YOUR APP ID HERE",
-  clientSecret: "YOUR APP PASSWORD HERE",
-  site: "https://login.microsoftonline.com/common",
-  authorizationPath: "/oauth2/v2.0/authorize",
-  tokenPath: "/oauth2/v2.0/token"
+  clientID: 'YOUR APP ID HERE',
+  clientSecret: 'YOUR APP PASSWORD HERE',
+  site: 'https://login.microsoftonline.com/common',
+  authorizationPath: '/oauth2/v2.0/authorize',
+  tokenPath: '/oauth2/v2.0/token'
 }
-var oauth2 = require("simple-oauth2")(credentials)
+var oauth2 = require('simple-oauth2')(credentials)
 
-var redirectUri = "http://localhost:8000/authorize";
+var redirectUri = 'http://localhost:8000/authorize';
 
 // The scopes the app requires
-var scopes = [ "openid",
-               "https://outlook.office.com/mail.read",
-               "https://outlook.office.com/calendars.read",
-               "https://outlook.office.com/contacts.read" ];
+var scopes = [ 'openid',
+               'offline_access',
+               'https://outlook.office.com/mail.read',
+               'https://outlook.office.com/calendars.read',
+               'https://outlook.office.com/contacts.read' ];
 
 function getAuthUrl() {
   var returnVal = oauth2.authCode.authorizeURL({
     redirect_uri: redirectUri,
-    scope: scopes.join(" ")
+    scope: scopes.join(' ')
   });
-  console.log("Generated auth url: " + returnVal);
+  console.log('Generated auth url: ' + returnVal);
   return returnVal;
 }
 
@@ -30,15 +31,15 @@ function getTokenFromCode(auth_code, callback, response) {
   oauth2.authCode.getToken({
     code: auth_code,
     redirect_uri: redirectUri,
-    scope: scopes.join(" ")
+    scope: scopes.join(' ')
     }, function (error, result) {
       if (error) {
-        console.log("Access token error: ", error.message);
+        console.log('Access token error: ', error.message);
         callback(response, error, null);
       }
       else {
         token = oauth2.accessToken.create(result);
-        console.log("Token created: ", token.token);
+        console.log('Token created: ', token.token);
         callback(response, null, token);
       }
     });

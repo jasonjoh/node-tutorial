@@ -32,20 +32,20 @@ Create a new file called `server.js`. Paste the following code into `server.js` 
 ### Contents of the `.\server.js` file ###
 
 ```js
-var http = require("http");
-var url = require("url");
+var http = require('http');
+var url = require('url');
 
 function start(route, handle) {
   function onRequest(request, response) {
   var pathName = url.parse(request.url).pathname;
-  console.log("Request for " + pathName + " received.");
+  console.log('Request for ' + pathName + ' received.');
   
   route(handle, pathName, response, request);
   }
   
 var port = 8000;
   http.createServer(onRequest).listen(port);
-  console.log("Server has started. Listening on port: " + port + "...");
+  console.log('Server has started. Listening on port: ' + port + '...');
 }
 
 exports.start = start;
@@ -59,13 +59,13 @@ Create a new file called `router.js`, and add the following code.
 
 ```js
 function route(handle, pathname, response, request) {
-  console.log("About to route a request for " + pathname);
+  console.log('About to route a request for ' + pathname);
   if (typeof handle[pathname] === 'function') {
   return handle[pathname](response, request);
   } else {
-    console.log("No request handler found for " + pathname);
-    response.writeHead(404 ,{"Content-Type": "text/plain"});
-    response.write("404 Not Found");
+    console.log('No request handler found for ' + pathname);
+    response.writeHead(404 ,{'Content-Type': 'text/plain'});
+    response.write('404 Not Found');
     response.end();
     }
 }
@@ -78,17 +78,17 @@ This code looks up a function to call based on the requested path. It uses the `
 ### Contents of the `.\index.js` file ###
 
 ```js
-var server = require("./server");
-var router = require("./router");
+var server = require('./server');
+var router = require('./router');
 
 var handle = {};
-handle["/"] = home;
+handle['/'] = home;
 
 server.start(router.route, handle);
 
 function home(response, request) {
-  console.log("Request handler 'home' was called.");
-  response.writeHead(200, {"Content-Type": "text/html"});
+  console.log('Request handler 'home' was called.');
+  response.writeHead(200, {'Content-Type': 'text/html'});
   response.write('<p>Hello world!</p>');
   response.end();
 }
@@ -114,8 +114,8 @@ Let's begin by replacing the "Hello world!" message with a signon link. To do th
 
 ```js
 function home(response, request) {
-  console.log("Request handler 'home' was called.");
-  response.writeHead(200, {"Content-Type": "text/html"});
+  console.log('Request handler \'home\' was called.');
+  response.writeHead(200, {'Content-Type': 'text/html'});
   response.write('<p>Please <a href="#">sign in</a> with your Office 365 or Outlook.com account.</p>');
   response.end();
 }
@@ -137,26 +137,26 @@ Now the library is installed and ready to use. Create a new file called `authHel
 
 ```js
 var credentials = {
-  clientID: "YOUR APP ID HERE",
-  clientSecret: "YOUR APP PASSWORD HERE",
-  site: "https://login.microsoftonline.com/common",
-  authorizationPath: "/oauth2/v2.0/authorize",
-  tokenPath: "/oauth2/v2.0/token"
+  clientID: 'YOUR APP ID HERE',
+  clientSecret: 'YOUR APP PASSWORD HERE',
+  site: 'https://login.microsoftonline.com/common',
+  authorizationPath: '/oauth2/v2.0/authorize',
+  tokenPath: '/oauth2/v2.0/token'
 }
-var oauth2 = require("simple-oauth2")(credentials);
+var oauth2 = require('simple-oauth2')(credentials);
 
-var redirectUri = "http://localhost:8000/authorize";
+var redirectUri = 'http://localhost:8000/authorize';
 
 // The scopes the app requires
-var scopes = [ "openid",
-               "https://outlook.office.com/mail.read" ];
+var scopes = [ 'openid',
+               'https://outlook.office.com/mail.read' ];
     
 function getAuthUrl() {
   var returnVal = oauth2.authCode.authorizeURL({
   redirect_uri: redirectUri,
-  scope: scopes.join(" ")
+  scope: scopes.join(' ')
   });
-  console.log("Generated auth url: " + returnVal);
+  console.log('Generated auth url: ' + returnVal);
   return returnVal;
 }
 
@@ -190,18 +190,18 @@ Now that we have actual values for the client ID and secret, let's put the `simp
 #### Updated contents of the `.\index.js` file ####
 
 ```js
-var server = require("./server");
-var router = require("./router");
-var authHelper = require("./authHelper");
+var server = require('./server');
+var router = require('./router');
+var authHelper = require('./authHelper');
 
 var handle = {};
-handle["/"] = home;
+handle['/'] = home;
 
 server.start(router.route, handle);
 
 function home(response, request) {
-  console.log("Request handler 'home' was called.");
-  response.writeHead(200, {"Content-Type": "text/html"});
+  console.log('Request handler 'home' was called.');
+  response.writeHead(200, {'Content-Type': 'text/html'});
   response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 or Outlook.com account.</p>');
   response.end();
 }
@@ -229,8 +229,8 @@ First, let's add a route for the `/authorize` path to the `handle` array in `ind
 
 ```js
 var handle = {};
-handle["/"] = home;
-handle["/authorize"] = authorize;
+handle['/'] = home;
+handle['/authorize'] = authorize;
 ```
 
 The added line tells our router that when a GET request comes in for `/authorize`, invoke the `authorize` function. So to make this work, we need to implement that function. Add the following function to `index.js`.
@@ -238,15 +238,15 @@ The added line tells our router that when a GET request comes in for `/authorize
 #### `authorize` function ####
 
 ```js
-var url = require("url");
+var url = require('url');
 function authorize(response, request) {
-  console.log("Request handler 'authorize' was called.");
+  console.log('Request handler \'authorize\' was called.');
   
   // The authorization code is passed as a query parameter
   var url_parts = url.parse(request.url, true);
   var code = url_parts.query.code;
-  console.log("Code: " + code);
-  response.writeHead(200, {"Content-Type": "text/html"});
+  console.log('Code: ' + code);
+  response.writeHead(200, {'Content-Type': 'text/html'});
   response.write('<p>Received auth code: ' + code + '</p>');
   response.end();
 }
@@ -264,15 +264,15 @@ function getTokenFromCode(auth_code, callback, response) {
   oauth2.authCode.getToken({
   code: auth_code,
   redirect_uri: redirectUri,
-  scope: scopes.join(" ")
+  scope: scopes.join(' ')
   }, function (error, result) {
     if (error) {
-    console.log("Access token error: ", error.message);
+    console.log('Access token error: ', error.message);
     callback(response, error, null);
     }
     else {
     token = oauth2.accessToken.create(result);
-    console.log("Token created: ", token.token);
+    console.log('Token created: ', token.token);
     callback(response, null, token);
     }
   });
@@ -294,7 +294,7 @@ npm install node-outlook --save
 Then require the `node-outlook` library by adding the following line to `index.js`.
 
 ```js
-var outlook = require("node-outlook");
+var outlook = require('node-outlook');
 ```
 
 Add a new function `getUserEmail` to `index.js`.
@@ -327,12 +327,12 @@ Let's make sure that works. Modify the `authorize` function in the `index.js` fi
 
 ```js
 function authorize(response, request) {
-  console.log("Request handler 'authorize' was called.");
+  console.log('Request handler 'authorize' was called.');
   
   // The authorization code is passed as a query parameter
   var url_parts = url.parse(request.url, true);
   var code = url_parts.query.code;
-  console.log("Code: " + code);
+  console.log('Code: ' + code);
   authHelper.getTokenFromCode(code, tokenReceived, response);
 }
 ```
@@ -342,8 +342,8 @@ function authorize(response, request) {
 ```js
 function tokenReceived(response, error, token) {
   if (error) {
-    console.log("Access token error: ", error.message);
-    response.writeHead(200, {"Content-Type": "text/html"});
+    console.log('Access token error: ', error.message);
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p>ERROR: ' + error + '</p>');
     response.end();
   }
@@ -351,10 +351,10 @@ function tokenReceived(response, error, token) {
     getUserEmail(token.token.access_token, function(error, email) {
       if (error) {
         console.log('getUserEmail returned an error: ' + error);
-        response.write("<p>ERROR: " + error + "</p>");
+        response.write('<p>ERROR: ' + error + '</p>');
         response.end();
       } else if (email) {
-        response.writeHead(200, {"Content-Type": "text/html"});
+        response.writeHead(200, {'Content-Type': 'text/html'});
         response.write('<p>Email: ' + email + '</p>');
         response.write('<p>Access token: ' + token.token.access_token + '</p>');
         response.end();
@@ -373,8 +373,8 @@ Now let's change our code to store the token and email in a session cookie inste
 ```js
 function tokenReceived(response, error, token) {
   if (error) {
-    console.log("Access token error: ", error.message);
-    response.writeHead(200, {"Content-Type": "text/html"});
+    console.log('Access token error: ', error.message);
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p>ERROR: ' + error + '</p>');
     response.end();
   }
@@ -382,7 +382,7 @@ function tokenReceived(response, error, token) {
     getUserEmail(token.token.access_token, function(error, email){
       if (error) {
         console.log('getUserEmail returned an error: ' + error);
-        response.write("<p>ERROR: " + error + "</p>");
+        response.write('<p>ERROR: ' + error + '</p>');
         response.end();
       } else if (email) {
         var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
@@ -396,6 +396,12 @@ function tokenReceived(response, error, token) {
 }
 ```
 
+### Refreshing the access token
+
+Access tokens returned from Azure are valid for an hour. If you use the token after it has expired, the API calls will return 401 errors. You could ask the user to sign in again, but the better option is to refresh the token silently.
+
+In order to do that, the app must request the `offline_access` scope. Add this scope to the `scopes` array in `authHelper.js`:
+
 ## Using the Mail API ##
 
 Now that we can get an access token, we're in a good position to do something with the Mail API. Let's start by creating a `mail` route and function. Open the `index.js` file and update the `handle` array.
@@ -404,9 +410,9 @@ Now that we can get an access token, we're in a good position to do something wi
 
 ```js
 var handle = {};
-handle["/"] = home;
-handle["/authorize"] = authorize;
-handle["/mail"] = mail;
+handle['/'] = home;
+handle['/authorize'] = authorize;
+handle['/mail'] = mail;
 ```
 
 Now add a helper function to read cookie values.
@@ -429,16 +435,16 @@ function getValueFromCookie(valueName, cookie) {
 ```js
 function mail(response, request) {
   var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
-  console.log("Token found in cookie: ", token);
+  console.log('Token found in cookie: ', token);
   var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-  console.log("Email found in cookie: ", email);
+  console.log('Email found in cookie: ', email);
   if (token) {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p>Token retrieved from cookie: ' + token + '</p>');
     response.end();
   }
   else {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
     response.end();
   }
@@ -452,11 +458,11 @@ For now all this does is read the token back from the cookie and display it. Sav
 ```js
 function mail(response, request) {
   var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
-  console.log("Token found in cookie: ", token);
+  console.log('Token found in cookie: ', token);
   var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-  console.log("Email found in cookie: ", email);
+  console.log('Email found in cookie: ', email);
   if (token) {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<div><h1>Your inbox</h1></div>');
     
     var queryParams = {
@@ -474,7 +480,7 @@ function mail(response, request) {
       function(error, result){
         if (error) {
           console.log('getMessages returned an error: ' + error);
-          response.write("<p>ERROR: " + error + "</p>");
+          response.write('<p>ERROR: ' + error + '</p>');
           response.end();
         }
         else if (result) {
@@ -482,7 +488,7 @@ function mail(response, request) {
           response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
           result.value.forEach(function(message) {
             console.log('  Subject: ' + message.Subject);
-            var from = message.From ? message.From.EmailAddress.Name : "NONE";
+            var from = message.From ? message.From.EmailAddress.Name : 'NONE';
             response.write('<tr><td>' + from + 
               '</td><td>' + message.Subject +
               '</td><td>' + message.ReceivedDateTime.toString() + '</td></tr>');
@@ -494,7 +500,7 @@ function mail(response, request) {
       });
   }
   else {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
     response.end();
   }

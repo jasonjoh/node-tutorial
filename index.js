@@ -1,40 +1,40 @@
 // Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.
-var server = require("./server");
-var router = require("./router");
-var authHelper = require("./authHelper");
-var outlook = require("node-outlook");
+var server = require('./server');
+var router = require('./router');
+var authHelper = require('./authHelper');
+var outlook = require('node-outlook');
 
 var handle = {};
-handle["/"] = home;
-handle["/authorize"] = authorize;
-handle["/mail"] = mail;
-handle["/calendar"] = calendar;
-handle["/contacts"] = contacts;
+handle['/'] = home;
+handle['/authorize'] = authorize;
+handle['/mail'] = mail;
+handle['/calendar'] = calendar;
+handle['/contacts'] = contacts;
 
 server.start(router.route, handle);
 
 function home(response, request) {
-  console.log("Request handler 'home' was called.");
-  response.writeHead(200, {"Content-Type": "text/html"});
+  console.log('Request handler \'home\' was called.');
+  response.writeHead(200, {'Content-Type': 'text/html'});
   response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 or Outlook.com account.</p>');
   response.end();
 }
 
-var url = require("url");
+var url = require('url');
 function authorize(response, request) {
-  console.log("Request handler 'authorize' was called.");
+  console.log('Request handler \'authorize\' was called.');
   
   // The authorization code is passed as a query parameter
   var url_parts = url.parse(request.url, true);
   var code = url_parts.query.code;
-  console.log("Code: " + code);
+  console.log('Code: ' + code);
   authHelper.getTokenFromCode(code, tokenReceived, response);
 }
 
 function tokenReceived(response, error, token) {
   if (error) {
-    console.log("Access token error: ", error.message);
-    response.writeHead(200, {"Content-Type": "text/html"});
+    console.log('Access token error: ', error.message);
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p>ERROR: ' + error + '</p>');
     response.end();
   }
@@ -42,7 +42,7 @@ function tokenReceived(response, error, token) {
     getUserEmail(token.token.access_token, function(error, email){
       if (error) {
         console.log('getUserEmail returned an error: ' + error);
-        response.write("<p>ERROR: " + error + "</p>");
+        response.write('<p>ERROR: ' + error + '</p>');
         response.end();
       } else if (email) {
         var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
@@ -84,11 +84,11 @@ function getValueFromCookie(valueName, cookie) {
 
 function mail(response, request) {
   var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
-  console.log("Token found in cookie: ", token);
+  console.log('Token found in cookie: ', token);
   var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-  console.log("Email found in cookie: ", email);
+  console.log('Email found in cookie: ', email);
   if (token) {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<div><h1>Your inbox</h1></div>');
     
     var queryParams = {
@@ -106,7 +106,7 @@ function mail(response, request) {
       function(error, result){
         if (error) {
           console.log('getMessages returned an error: ' + error);
-          response.write("<p>ERROR: " + error + "</p>");
+          response.write('<p>ERROR: ' + error + '</p>');
           response.end();
         }
         else if (result) {
@@ -114,7 +114,7 @@ function mail(response, request) {
           response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
           result.value.forEach(function(message) {
             console.log('  Subject: ' + message.Subject);
-            var from = message.From ? message.From.EmailAddress.Name : "NONE";
+            var from = message.From ? message.From.EmailAddress.Name : 'NONE';
             response.write('<tr><td>' + from + 
               '</td><td>' + message.Subject +
               '</td><td>' + message.ReceivedDateTime.toString() + '</td></tr>');
@@ -126,7 +126,7 @@ function mail(response, request) {
       });
   }
   else {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
     response.end();
   }
@@ -134,11 +134,11 @@ function mail(response, request) {
 
 function calendar(response, request) {
   var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
-  console.log("Token found in cookie: ", token);
+  console.log('Token found in cookie: ', token);
   var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-  console.log("Email found in cookie: ", email);
+  console.log('Email found in cookie: ', email);
   if (token) {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<div><h1>Your calendar</h1></div>');
     
     var queryParams = {
@@ -159,7 +159,7 @@ function calendar(response, request) {
       function(error, result){
         if (error) {
           console.log('getEvents returned an error: ' + error);
-          response.write("<p>ERROR: " + error + "</p>");
+          response.write('<p>ERROR: ' + error + '</p>');
           response.end();
         }
         else if (result) {
@@ -178,7 +178,7 @@ function calendar(response, request) {
       });
   }
   else {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
     response.end();
   }
@@ -186,11 +186,11 @@ function calendar(response, request) {
 
 function contacts(response, request) {
   var token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
-  console.log("Token found in cookie: ", token);
+  console.log('Token found in cookie: ', token);
   var email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-  console.log("Email found in cookie: ", email);
+  console.log('Email found in cookie: ', email);
   if (token) {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<div><h1>Your contacts</h1></div>');
     
     var queryParams = {
@@ -208,14 +208,14 @@ function contacts(response, request) {
       function(error, result){
         if (error) {
           console.log('getContacts returned an error: ' + error);
-          response.write("<p>ERROR: " + error + "</p>");
+          response.write('<p>ERROR: ' + error + '</p>');
           response.end();
         }
         else if (result) {
           console.log('getContacts returned ' + result.value.length + ' contacts.');
           response.write('<table><tr><th>First name</th><th>Last name</th><th>Email</th></tr>');
           result.value.forEach(function(contact) {
-            var email = contact.EmailAddresses[0] ? contact.EmailAddresses[0].Address : "NONE";
+            var email = contact.EmailAddresses[0] ? contact.EmailAddresses[0].Address : 'NONE';
             response.write('<tr><td>' + contact.GivenName + 
               '</td><td>' + contact.Surname +
               '</td><td>' + email + '</td></tr>');
@@ -227,7 +227,7 @@ function contacts(response, request) {
       });
   }
   else {
-    response.writeHead(200, {"Content-Type": "text/html"});
+    response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
     response.end();
   }
