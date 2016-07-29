@@ -11,7 +11,23 @@ This guide assumes:
 
 ## Create the app ##
 
-Let's dive right in! Create an empty directory where you want to create your new Node.js app. For the purposes of this guide I will assume the name of the directory is `node-tutorial`, but feel free to use any name you like. Using your favorite JavaScript editor, create a new file called `server.js`. Paste the following code into `server.js` and save it.
+Let's dive right in! Create an empty directory where you want to create your new Node.js app. For the purposes of this guide I will assume the name of the directory is `node-tutorial`, but feel free to use any name you like. 
+
+Open a command prompt in the `node-tutorial` directory, and run the following command:
+
+```Shell
+npm init
+```
+
+Press **ENTER** at all the prompts to accept the defaults. When you are done, you should have a basic `package.json` file. Using your favorite JavaScript editor, open this file and replace the existing `scripts` value with the following:
+
+```json
+"scripts": {
+  "start": "node index.js"
+},
+```
+
+Create a new file called `server.js`. Paste the following code into `server.js` and save it.
 
 ### Contents of the `.\server.js` file ###
 
@@ -80,7 +96,9 @@ function home(response, request) {
 
 At this point, you should have a working app. Open a command prompt to the directory where your files are located, and enter the following command.
 
-    node index.js
+```Shell
+npm start
+```
 
 You should get a confirmation saying `Server has started.` Open your browser and navigate to [http://localhost:8000](http://localhost:8000). You should see "Hello world!".
 
@@ -109,7 +127,9 @@ As you can see, our home page will be very simple. For now, the link doesn't do 
 
 Our goal in this section is to make the link on our home page initiate the [OAuth2 Authorization Code Grant flow with Azure AD](https://msdn.microsoft.com/en-us/library/azure/dn645542.aspx). To make things easier, we'll use the [simple-oauth2 library](https://github.com/andreareginato/simple-oauth2) to handle our OAuth requests. At your command prompt, enter the following command.
 
-    npm install simple-oauth2
+```Shell
+npm install simple-oauth2 --save
+```
 
 Now the library is installed and ready to use. Create a new file called `authHelper.js`. We'll start here by defining a function to generate the login URL.
 
@@ -402,7 +422,9 @@ For now all this does is read the token back from the cookie and display it. Sav
 
 In order to use the Mail API, install the [node-outlook library](https://github.com/jasonjoh/node-outlook) from the command line.
 
-    npm install node-outlook
+```Shell
+npm install node-outlook --save
+```
 
 Now we can modify the `mail` function to use this library and retrieve email. First, require the `node-outlook` library by adding the following line to `index.js`.
 
