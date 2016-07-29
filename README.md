@@ -149,7 +149,6 @@ var redirectUri = "http://localhost:8000/authorize";
 
 // The scopes the app requires
 var scopes = [ "openid",
-               "profile",
                "https://outlook.office.com/mail.read" ];
     
 function getAuthUrl() {
@@ -164,7 +163,7 @@ function getAuthUrl() {
 exports.getAuthUrl = getAuthUrl;
 ```
 
-The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array includes the `openid`, `profile`, and `Mail.Read` scopes, since we will only read the user's mail. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
+The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array includes the `openid` and `Mail.Read` scopes, since we will only read the user's mail. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
 
 ### Generate a client ID and secret ###
 
@@ -210,7 +209,7 @@ function home(response, request) {
 
 Save your changes and browse to [http://localhost:8000](http://localhost:8000). If you hover over the link, it should look like:
 
-    https://login.microsoftonline.com/common/oauth2/authorize?redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize&scope=openid+profile+https%3A%2F%2Foutlook.office.com%2Fmail.read&response_type=code&client_id=<SOME GUID>
+    https://login.microsoftonline.com/common/oauth2/authorize?redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauthorize&scope=openid+https%3A%2F%2Foutlook.office.com%2Fmail.read&response_type=code&client_id=<SOME GUID>
 
 The `<SOME GUID>` portion should match your client ID. Click on the link and  you should be presented with a sign in page:
 
@@ -284,29 +283,42 @@ exports.getTokenFromCode = getTokenFromCode;
 
 ### Getting the user's email address ###
 
-The token returned from `getTokenFromCode` doesn't just include the access token. It also includes an ID token. We can use this token to find out a few pieces of information about the logged on user. In this case, we want to get the user's email address. You'll see why we want this soon.
+Our first use of the access token will be to get the user's email address from the Outlook API. You'll see why we want this soon.
 
-Add a new function `getEmailFromIdToken` to `authHelper.js`.
+In order to use the Outlook API, install the [node-outlook library](https://github.com/jasonjoh/node-outlook) from the command line.
 
-#### `getEmailFromIdToken` in the `.\authHelper.js` file ####
+```Shell
+npm install node-outlook --save
+```
+
+Then require the `node-outlook` library by adding the following line to `index.js`.
 
 ```js
-function getEmailFromIdToken(id_token) {
-  // JWT is in three parts, separated by a '.'
-  var token_parts = id_token.split('.');
-  
-  // Token content is in the second part, in urlsafe base64
-  var encoded_token = new Buffer(token_parts[1].replace("-", "_").replace("+", "/"), 'base64');
-  
-  var decoded_token = encoded_token.toString();
-  
-  var jwt = JSON.parse(decoded_token);
-  
-  // Email is in the preferred_username field
-  return jwt.preferred_username
-}
+var outlook = require("node-outlook");
+```
 
-exports.getEmailFromIdToken = getEmailFromIdToken;
+Add a new function `getUserEmail` to `index.js`.
+
+#### `getUserEmail` in the `.\index.js` file ####
+
+```js
+function getUserEmail(token, callback) {
+  // Set the API endpoint to use the v2.0 endpoint
+  outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0');
+
+  // Set up oData parameters
+  var queryParams = {
+    '$select': 'DisplayName, EmailAddress',
+  };
+
+  outlook.base.getUser({token: token, odataParams: queryParams}, function(error, user){
+    if (error) {
+      callback(error, null);
+    } else {
+      callback(null, user.EmailAddress);
+    }
+  });
+}
 ```
 
 Let's make sure that works. Modify the `authorize` function in the `index.js` file to use these helper functions and display the return values. Note that `getToken` function is asynchronous, so we need to implement a callback function to receive the results.
@@ -330,16 +342,24 @@ function authorize(response, request) {
 ```js
 function tokenReceived(response, error, token) {
   if (error) {
-  console.log("Access token error: ", error.message);
-  response.writeHead(200, {"Content-Type": "text/html"});
-  response.write('<p>ERROR: ' + error + '</p>');
-  response.end();
+    console.log("Access token error: ", error.message);
+    response.writeHead(200, {"Content-Type": "text/html"});
+    response.write('<p>ERROR: ' + error + '</p>');
+    response.end();
   }
   else {
-  response.writeHead(200, {"Content-Type": "text/html"});
-response.write('<p>Email: ' + authHelper.getEmailFromIdToken(token.token.id_token) + '</p>');
-  response.write('<p>Access token: ' + token.token.access_token + '</p>');
-  response.end();
+    getUserEmail(token.token.access_token, function(error, email) {
+      if (error) {
+        console.log('getUserEmail returned an error: ' + error);
+        response.write("<p>ERROR: " + error + "</p>");
+        response.end();
+      } else if (email) {
+        response.writeHead(200, {"Content-Type": "text/html"});
+        response.write('<p>Email: ' + email + '</p>');
+        response.write('<p>Access token: ' + token.token.access_token + '</p>');
+        response.end();
+      }
+    });
   }
 }
 ```
@@ -353,18 +373,25 @@ Now let's change our code to store the token and email in a session cookie inste
 ```js
 function tokenReceived(response, error, token) {
   if (error) {
-  console.log("Access token error: ", error.message);
-  response.writeHead(200, {"Content-Type": "text/html"});
-  response.write('<p>ERROR: ' + error + '</p>');
-  response.end();
+    console.log("Access token error: ", error.message);
+    response.writeHead(200, {"Content-Type": "text/html"});
+    response.write('<p>ERROR: ' + error + '</p>');
+    response.end();
   }
   else {
-  var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
-                    'node-tutorial-email=' + authHelper.getEmailFromIdToken(token.token.id_token) + ';Max-Age=3600'];
-  response.setHeader('Set-Cookie', cookies);
-  response.writeHead(200, {"Content-Type": "text/html"});
-  response.write('<p>Access token saved in cookie.</p>');
-  response.end();
+    getUserEmail(token.token.access_token, function(error, email){
+      if (error) {
+        console.log('getUserEmail returned an error: ' + error);
+        response.write("<p>ERROR: " + error + "</p>");
+        response.end();
+      } else if (email) {
+        var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
+                       'node-tutorial-email=' + email + ';Max-Age=3600'];
+        response.setHeader('Set-Cookie', cookies);
+        response.writeHead(302, {'Location': 'http://localhost:8000/mail'});
+        response.end();
+      }
+    }); 
   }
 }
 ```
@@ -419,16 +446,6 @@ function mail(response, request) {
 ```
 
 For now all this does is read the token back from the cookie and display it. Save your changes, restart the server, and go through the signon process again. You should see the token displayed. Now that we know we have access to the token in the `mail` function, we're ready to call the Mail API.
-
-In order to use the Mail API, install the [node-outlook library](https://github.com/jasonjoh/node-outlook) from the command line.
-
-```Shell
-npm install node-outlook --save
-```
-
-Now we can modify the `mail` function to use this library and retrieve email. First, require the `node-outlook` library by adding the following line to `index.js`.
-
-    var outlook = require("node-outlook");
 
 Then update the `mail` function to query the inbox.
 

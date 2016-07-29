@@ -39,12 +39,38 @@ function tokenReceived(response, error, token) {
     response.end();
   }
   else {
-    var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
-                   'node-tutorial-email=' + authHelper.getEmailFromIdToken(token.token.id_token) + ';Max-Age=3600'];
-    response.setHeader('Set-Cookie', cookies);
-    response.writeHead(302, {'Location': 'http://localhost:8000/mail'});
-    response.end();
+    getUserEmail(token.token.access_token, function(error, email){
+      if (error) {
+        console.log('getUserEmail returned an error: ' + error);
+        response.write("<p>ERROR: " + error + "</p>");
+        response.end();
+      } else if (email) {
+        var cookies = ['node-tutorial-token=' + token.token.access_token + ';Max-Age=3600',
+                       'node-tutorial-email=' + email + ';Max-Age=3600'];
+        response.setHeader('Set-Cookie', cookies);
+        response.writeHead(302, {'Location': 'http://localhost:8000/mail'});
+        response.end();
+      }
+    }); 
   }
+}
+
+function getUserEmail(token, callback) {
+  // Set the API endpoint to use the v2.0 endpoint
+  outlook.base.setApiEndpoint('https://outlook.office.com/api/v2.0');
+
+  // Set up oData parameters
+  var queryParams = {
+    '$select': 'DisplayName, EmailAddress',
+  };
+
+  outlook.base.getUser({token: token, odataParams: queryParams}, function(error, user){
+    if (error) {
+      callback(error, null);
+    } else {
+      callback(null, user.EmailAddress);
+    }
+  });
 }
 
 function getValueFromCookie(valueName, cookie) {

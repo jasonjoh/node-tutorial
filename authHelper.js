@@ -12,7 +12,6 @@ var redirectUri = "http://localhost:8000/authorize";
 
 // The scopes the app requires
 var scopes = [ "openid",
-               "profile", 
                "https://outlook.office.com/mail.read",
                "https://outlook.office.com/calendars.read",
                "https://outlook.office.com/contacts.read" ];
@@ -45,23 +44,7 @@ function getTokenFromCode(auth_code, callback, response) {
     });
 }
 
-function getEmailFromIdToken(id_token) {
-  // JWT is in three parts, separated by a '.'
-  var token_parts = id_token.split('.');
-  
-  // Token content is in the second part, in urlsafe base64
-  var encoded_token = new Buffer(token_parts[1].replace("-", "+").replace("_", "/"), 'base64');
-  
-  var decoded_token = encoded_token.toString();
-  
-  var jwt = JSON.parse(decoded_token);
-  
-  // Email is in the preferred_username field
-  return jwt.preferred_username
-}
-
 exports.getAuthUrl = getAuthUrl;
-exports.getEmailFromIdToken = getEmailFromIdToken;
 exports.getTokenFromCode = getTokenFromCode; 
 
 /*
