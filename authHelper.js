@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.
 var credentials = {
-  clientID: 'YOUR APP ID HERE',
-  clientSecret: 'YOUR APP PASSWORD HERE',
+  clientID: "891f2134-438d-42b5-93c5-0aaeb1bcce86",
+  clientSecret: "jNeXZds7kEKAHEvnHShWohL",
   site: 'https://login.microsoftonline.com/common',
   authorizationPath: '/oauth2/v2.0/authorize',
   tokenPath: '/oauth2/v2.0/token'
@@ -45,8 +45,14 @@ function getTokenFromCode(auth_code, callback, response) {
     });
 }
 
+function refreshAccessToken(refreshToken, callback) {
+  var tokenObj = oauth2.accessToken.create({refresh_token: refreshToken});
+  tokenObj.refresh(callback);
+}
+
 exports.getAuthUrl = getAuthUrl;
 exports.getTokenFromCode = getTokenFromCode; 
+exports.refreshAccessToken = refreshAccessToken;
 
 /*
   MIT License: 
