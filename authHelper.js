@@ -1,28 +1,28 @@
 // Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.
 var credentials = {
-  clientID: "YOUR APP ID HERE",
-  clientSecret: "YOUR APP PASSWORD HERE",
-  site: "https://login.microsoftonline.com/common",
-  authorizationPath: "/oauth2/v2.0/authorize",
-  tokenPath: "/oauth2/v2.0/token"
+  clientID: "891f2134-438d-42b5-93c5-0aaeb1bcce86",
+  clientSecret: "jNeXZds7kEKAHEvnHShWohL",
+  site: 'https://login.microsoftonline.com/common',
+  authorizationPath: '/oauth2/v2.0/authorize',
+  tokenPath: '/oauth2/v2.0/token'
 }
-var oauth2 = require("simple-oauth2")(credentials)
+var oauth2 = require('simple-oauth2')(credentials)
 
-var redirectUri = "http://localhost:8000/authorize";
+var redirectUri = 'http://localhost:8000/authorize';
 
 // The scopes the app requires
-var scopes = [ "openid",
-               "profile", 
-               "https://outlook.office.com/mail.read",
-               "https://outlook.office.com/calendars.read",
-               "https://outlook.office.com/contacts.read" ];
+var scopes = [ 'openid',
+               'offline_access',
+               'https://outlook.office.com/mail.read',
+               'https://outlook.office.com/calendars.read',
+               'https://outlook.office.com/contacts.read' ];
 
 function getAuthUrl() {
   var returnVal = oauth2.authCode.authorizeURL({
     redirect_uri: redirectUri,
-    scope: scopes.join(" ")
+    scope: scopes.join(' ')
   });
-  console.log("Generated auth url: " + returnVal);
+  console.log('Generated auth url: ' + returnVal);
   return returnVal;
 }
 
@@ -31,38 +31,28 @@ function getTokenFromCode(auth_code, callback, response) {
   oauth2.authCode.getToken({
     code: auth_code,
     redirect_uri: redirectUri,
-    scope: scopes.join(" ")
+    scope: scopes.join(' ')
     }, function (error, result) {
       if (error) {
-        console.log("Access token error: ", error.message);
+        console.log('Access token error: ', error.message);
         callback(response, error, null);
       }
       else {
         token = oauth2.accessToken.create(result);
-        console.log("Token created: ", token.token);
+        console.log('Token created: ', token.token);
         callback(response, null, token);
       }
     });
 }
 
-function getEmailFromIdToken(id_token) {
-  // JWT is in three parts, separated by a '.'
-  var token_parts = id_token.split('.');
-  
-  // Token content is in the second part, in urlsafe base64
-  var encoded_token = new Buffer(token_parts[1].replace("-", "+").replace("_", "/"), 'base64');
-  
-  var decoded_token = encoded_token.toString();
-  
-  var jwt = JSON.parse(decoded_token);
-  
-  // Email is in the preferred_username field
-  return jwt.preferred_username
+function refreshAccessToken(refreshToken, callback) {
+  var tokenObj = oauth2.accessToken.create({refresh_token: refreshToken});
+  tokenObj.refresh(callback);
 }
 
 exports.getAuthUrl = getAuthUrl;
-exports.getEmailFromIdToken = getEmailFromIdToken;
 exports.getTokenFromCode = getTokenFromCode; 
+exports.refreshAccessToken = refreshAccessToken;
 
 /*
   MIT License: 
