@@ -445,9 +445,7 @@ function mail(response, request) {
 }
 ```
 
-For now all this does is read the token back from the cookie and display it. Save your changes, restart the server, and go through the signon process again. You should see the token displayed. Now that we know we have access to the token in the `mail` function, we're ready to call the Mail API.
-
-Then update the `mail` function to query the inbox.
+For now all this does is read the token back from the cookie and display it. Save your changes, restart the server, and go through the signon process again. You should see the token displayed. Now that we know we have access to the token in the `mail` function, we're ready to call the Mail API. Update the `mail` function to query the inbox.
 
 #### New version of the `mail` function in `./index.js` ####
 
