@@ -37,13 +37,12 @@ var url = require('url');
 
 function start(route, handle) {
   function onRequest(request, response) {
-  var pathName = url.parse(request.url).pathname;
-  console.log('Request for ' + pathName + ' received.');
-  
-  route(handle, pathName, response, request);
+    var pathName = url.parse(request.url).pathname;
+    console.log('Request for ' + pathName + ' received.');
+    route(handle, pathName, response, request);
   }
   
-var port = 8000;
+  var port = 8000;
   http.createServer(onRequest).listen(port);
   console.log('Server has started. Listening on port: ' + port + '...');
 }
@@ -61,13 +60,13 @@ Create a new file called `router.js`, and add the following code.
 function route(handle, pathname, response, request) {
   console.log('About to route a request for ' + pathname);
   if (typeof handle[pathname] === 'function') {
-  return handle[pathname](response, request);
+    return handle[pathname](response, request);
   } else {
     console.log('No request handler found for ' + pathname);
     response.writeHead(404 ,{'Content-Type': 'text/plain'});
     response.write('404 Not Found');
     response.end();
-    }
+  }
 }
 
 exports.route = route;
@@ -153,8 +152,8 @@ var scopes = [ 'openid',
     
 function getAuthUrl() {
   var returnVal = oauth2.authCode.authorizeURL({
-  redirect_uri: redirectUri,
-  scope: scopes.join(' ')
+    redirect_uri: redirectUri,
+    scope: scopes.join(' ')
   });
   console.log('Generated auth url: ' + returnVal);
   return returnVal;
@@ -262,18 +261,17 @@ Let's add another helper function to `authHelper.js` called `getTokenFromCode`.
 function getTokenFromCode(auth_code, callback, response) {
   var token;
   oauth2.authCode.getToken({
-  code: auth_code,
-  redirect_uri: redirectUri,
-  scope: scopes.join(' ')
+    code: auth_code,
+    redirect_uri: redirectUri,
+    scope: scopes.join(' ')
   }, function (error, result) {
     if (error) {
-    console.log('Access token error: ', error.message);
-    callback(response, error, null);
-    }
-    else {
-    token = oauth2.accessToken.create(result);
-    console.log('Token created: ', token.token);
-    callback(response, null, token);
+      console.log('Access token error: ', error.message);
+      callback(response, error, null);
+    } else {
+      token = oauth2.accessToken.create(result);
+      console.log('Token created: ', token.token);
+      callback(response, null, token);
     }
   });
 }
@@ -346,8 +344,7 @@ function tokenReceived(response, error, token) {
     response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p>ERROR: ' + error + '</p>');
     response.end();
-  }
-  else {
+  } else {
     getUserEmail(token.token.access_token, function(error, email) {
       if (error) {
         console.log('getUserEmail returned an error: ' + error);
@@ -377,8 +374,7 @@ function tokenReceived(response, error, token) {
     response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p>ERROR: ' + error + '</p>');
     response.end();
-  }
-  else {
+  } else {
     getUserEmail(token.token.access_token, function(error, email){
       if (error) {
         console.log('getUserEmail returned an error: ' + error);
@@ -435,8 +431,7 @@ function tokenReceived(response, error, token) {
     response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p>ERROR: ' + error + '</p>');
     response.end();
-  }
-  else {
+  } else {
     getUserEmail(token.token.access_token, function(error, email){
       if (error) {
         console.log('getUserEmail returned an error: ' + error);
@@ -479,8 +474,7 @@ function getAccessToken(request, response, callback) {
         callback(null, newToken.token.access_token);
       }
     });
-  } 
-  else {
+  } else {
     // Return cached token
     var access_token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
     callback(null, access_token);
@@ -528,8 +522,7 @@ function mail(response, request) {
       response.writeHead(200, {'Content-Type': 'text/html'});
       response.write('<p>Token retrieved from cookie: ' + token + '</p>');
       response.end();
-    }
-    else {
+    } else {
       response.writeHead(200, {'Content-Type': 'text/html'});
       response.write('<p> No token found in cookie!</p>');
       response.end();
@@ -569,8 +562,7 @@ function mail(response, request) {
             console.log('getMessages returned an error: ' + error);
             response.write('<p>ERROR: ' + error + '</p>');
             response.end();
-          }
-          else if (result) {
+          } else if (result) {
             console.log('getMessages returned ' + result.value.length + ' messages.');
             response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
             result.value.forEach(function(message) {
@@ -585,8 +577,7 @@ function mail(response, request) {
             response.end();
           }
         });
-    }
-    else {
+    } else {
       response.writeHead(200, {'Content-Type': 'text/html'});
       response.write('<p> No token found in cookie!</p>');
       response.end();
