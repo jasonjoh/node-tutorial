@@ -97,7 +97,7 @@ function home(response, request) {
 At this point, you should have a working app. Open a command prompt to the directory where your files are located, and enter the following command.
 
 ```Shell
-npm start
+npm run start
 ```
 
 You should get a confirmation saying `Server has started.` Open your browser and navigate to [http://localhost:8000](http://localhost:8000). You should see "Hello world!".
