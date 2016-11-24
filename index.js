@@ -130,7 +130,7 @@ function mail(response, request) {
       // Set the anchor mailbox to the user's SMTP address
       outlook.base.setAnchorMailbox(email);
       
-      outlook.mail.getMessages({token: token, odataParams: queryParams},
+      outlook.mail.getMessages({token: token, folderId: 'inbox', odataParams: queryParams},
         function(error, result){
           if (error) {
             console.log('getMessages returned an error: ' + error);
