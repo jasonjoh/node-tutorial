@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.
 var credentials = {
-  clientID: "891f2134-438d-42b5-93c5-0aaeb1bcce86",
-  clientSecret: "jNeXZds7kEKAHEvnHShWohL",
+  clientID: 'YOUR APP ID HERE',
+  clientSecret: 'YOUR APP PASSWORD HERE',
   site: 'https://login.microsoftonline.com/common',
   authorizationPath: '/oauth2/v2.0/authorize',
   tokenPath: '/oauth2/v2.0/token'
@@ -36,8 +36,7 @@ function getTokenFromCode(auth_code, callback, response) {
       if (error) {
         console.log('Access token error: ', error.message);
         callback(response, error, null);
-      }
-      else {
+      } else {
         token = oauth2.accessToken.create(result);
         console.log('Token created: ', token.token);
         callback(response, null, token);

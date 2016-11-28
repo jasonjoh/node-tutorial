@@ -199,7 +199,7 @@ handle['/'] = home;
 server.start(router.route, handle);
 
 function home(response, request) {
-  console.log('Request handler 'home' was called.');
+  console.log('Request handler \'home\' was called.');
   response.writeHead(200, {'Content-Type': 'text/html'});
   response.write('<p>Please <a href="' + authHelper.getAuthUrl() + '">sign in</a> with your Office 365 or Outlook.com account.</p>');
   response.end();
@@ -325,7 +325,7 @@ Let's make sure that works. Modify the `authorize` function in the `index.js` fi
 
 ```js
 function authorize(response, request) {
-  console.log('Request handler 'authorize' was called.');
+  console.log('Request handler \'authorize\' was called.');
   
   // The authorization code is passed as a query parameter
   var url_parts = url.parse(request.url, true);

@@ -37,8 +37,7 @@ function tokenReceived(response, error, token) {
     response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p>ERROR: ' + error + '</p>');
     response.end();
-  }
-  else {
+  } else {
     getUserEmail(token.token.access_token, function(error, email){
       if (error) {
         console.log('getUserEmail returned an error: ' + error);
@@ -102,8 +101,7 @@ function getAccessToken(request, response, callback) {
         callback(null, newToken.token.access_token);
       }
     });
-  } 
-  else {
+  } else {
     // Return cached token
     var access_token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
     callback(null, access_token);
@@ -152,13 +150,30 @@ function mail(response, request) {
             response.end();
           }
         });
-    }
-    else {
+    } else {
       response.writeHead(200, {'Content-Type': 'text/html'});
       response.write('<p> No token found in cookie!</p>');
       response.end();
     }
   });
+}
+
+function buildAttendeeString(attendees) {
+
+  var attendeeString = 'wut';
+  if (attendees) {
+    attendeeString = '';
+
+    attendees.forEach(function(attendee) {
+      attendeeString += '<p>Name:' + attendee.EmailAddress.Name + '</p>';
+      attendeeString += '<p>Email:' + attendee.EmailAddress.Address + '</p>';
+      attendeeString += '<p>Type:' + attendee.Type + '</p>';
+      attendeeString += '<p>Response:' + attendee.Status.Response + '</p>';
+      attendeeString += '<p>Respond time:' + attendee.Status.Time + '</p>';
+    });
+  }
+
+  return attendeeString;
 }
 
 function calendar(response, request) {
@@ -171,7 +186,7 @@ function calendar(response, request) {
     response.write('<div><h1>Your calendar</h1></div>');
     
     var queryParams = {
-      '$select': 'Subject,Start,End',
+      '$select': 'Subject,Start,End,Attendees',
       '$orderby': 'Start/DateTime desc',
       '$top': 10
     };
@@ -190,23 +205,24 @@ function calendar(response, request) {
           console.log('getEvents returned an error: ' + error);
           response.write('<p>ERROR: ' + error + '</p>');
           response.end();
-        }
-        else if (result) {
+        } else if (result) {
           console.log('getEvents returned ' + result.value.length + ' events.');
-          response.write('<table><tr><th>Subject</th><th>Start</th><th>End</th></tr>');
+          response.write('<table><tr><th>Subject</th><th>Start</th><th>End</th><th>Attendees</th></tr>');
           result.value.forEach(function(event) {
             console.log('  Subject: ' + event.Subject);
+            console.log('  Event dump: ' + JSON.stringify(event));
             response.write('<tr><td>' + event.Subject + 
               '</td><td>' + event.Start.DateTime.toString() +
-              '</td><td>' + event.End.DateTime.toString() + '</td></tr>');
+              '</td><td>' + event.End.DateTime.toString() + 
+              '</td><td>' + buildAttendeeString(event.Attendees) + 
+              '</td></tr>');
           });
           
           response.write('</table>');
           response.end();
         }
       });
-  }
-  else {
+  } else {
     response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
     response.end();
@@ -239,8 +255,7 @@ function contacts(response, request) {
           console.log('getContacts returned an error: ' + error);
           response.write('<p>ERROR: ' + error + '</p>');
           response.end();
-        }
-        else if (result) {
+        } else if (result) {
           console.log('getContacts returned ' + result.value.length + ' contacts.');
           response.write('<table><tr><th>First name</th><th>Last name</th><th>Email</th></tr>');
           result.value.forEach(function(contact) {
@@ -254,8 +269,7 @@ function contacts(response, request) {
           response.end();
         }
       });
-  }
-  else {
+  } else {
     response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
     response.end();
