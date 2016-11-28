@@ -86,7 +86,7 @@ function getValueFromCookie(valueName, cookie) {
 function getAccessToken(request, response, callback) {
   var expiration = new Date(parseFloat(getValueFromCookie('node-tutorial-token-expires', request.headers.cookie)));
 
-  if (Date.compare(expiration, new Date()) === -1) {
+  if (expiration <= new Date()) {
     // refresh token
     console.log('TOKEN EXPIRED, REFRESHING');
     var refresh_token = getValueFromCookie('node-tutorial-refresh-token', request.headers.cookie);

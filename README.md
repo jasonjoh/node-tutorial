@@ -136,12 +136,16 @@ Now the library is installed and ready to use. Create a new file called `authHel
 
 ```js
 var credentials = {
-  clientID: 'YOUR APP ID HERE',
-  clientSecret: 'YOUR APP PASSWORD HERE',
-  site: 'https://login.microsoftonline.com/common',
-  authorizationPath: '/oauth2/v2.0/authorize',
-  tokenPath: '/oauth2/v2.0/token'
-}
+  client: {
+    id: 'YOUR APP ID HERE',
+    secret: 'YOUR APP PASSWORD HERE',
+  },
+  auth: {
+    tokenHost: 'https://login.microsoftonline.com',
+    authorizePath: 'common/oauth2/v2.0/authorize',
+    tokenPath: 'common/oauth2/v2.0/token'
+  }
+};
 var oauth2 = require('simple-oauth2')(credentials);
 
 var redirectUri = 'http://localhost:8000/authorize';
@@ -151,7 +155,7 @@ var scopes = [ 'openid',
                'https://outlook.office.com/mail.read' ];
     
 function getAuthUrl() {
-  var returnVal = oauth2.authCode.authorizeURL({
+  var returnVal = oauth2.authorizationCode.authorizeURL({
     redirect_uri: redirectUri,
     scope: scopes.join(' ')
   });
@@ -162,7 +166,7 @@ function getAuthUrl() {
 exports.getAuthUrl = getAuthUrl;
 ```
 
-The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array includes the `openid` and `Mail.Read` scopes, since we will only read the user's mail. The values of `clientId` and `clientSecret` are just placeholders, so we need to generate valid values.
+The first thing we do here is define our client ID and secret. We also define a redirect URI and an array of scopes. The scope array includes the `openid` and `Mail.Read` scopes, since we will only read the user's mail. The values of `id` and `secret` are just placeholders, so we need to generate valid values.
 
 ### Generate a client ID and secret ###
 
@@ -260,7 +264,7 @@ Let's add another helper function to `authHelper.js` called `getTokenFromCode`.
 ```js
 function getTokenFromCode(auth_code, callback, response) {
   var token;
-  oauth2.authCode.getToken({
+  oauth2.authorizationCode.getToken({
     code: auth_code,
     redirect_uri: redirectUri,
     scope: scopes.join(' ')
@@ -459,7 +463,7 @@ Now let's add a helper function in `index.js` to retrieve the cached token, chec
 function getAccessToken(request, response, callback) {
   var expiration = new Date(parseFloat(getValueFromCookie('node-tutorial-token-expires', request.headers.cookie)));
 
-  if (Date.compare(expiration, new Date()) === -1) {
+  if (expiration <= new Date()) {
     // refresh token
     console.log('TOKEN EXPIRED, REFRESHING');
     var refresh_token = getValueFromCookie('node-tutorial-refresh-token', request.headers.cookie);

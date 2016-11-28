@@ -1,12 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See full license at the bottom of this file.
 var credentials = {
-  clientID: 'YOUR APP ID HERE',
-  clientSecret: 'YOUR APP PASSWORD HERE',
-  site: 'https://login.microsoftonline.com/common',
-  authorizationPath: '/oauth2/v2.0/authorize',
-  tokenPath: '/oauth2/v2.0/token'
-}
-var oauth2 = require('simple-oauth2')(credentials)
+  client: {
+    id: 'YOUR APP ID HERE',
+    secret: 'YOUR APP PASSWORD HERE',
+  },
+  auth: {
+    tokenHost: 'https://login.microsoftonline.com',
+    authorizePath: 'common/oauth2/v2.0/authorize',
+    tokenPath: 'common/oauth2/v2.0/token'
+  }
+};
+var oauth2 = require('simple-oauth2').create(credentials);
 
 var redirectUri = 'http://localhost:8000/authorize';
 
@@ -18,7 +22,7 @@ var scopes = [ 'openid',
                'https://outlook.office.com/contacts.read' ];
 
 function getAuthUrl() {
-  var returnVal = oauth2.authCode.authorizeURL({
+  var returnVal = oauth2.authorizationCode.authorizeURL({
     redirect_uri: redirectUri,
     scope: scopes.join(' ')
   });
@@ -28,7 +32,7 @@ function getAuthUrl() {
 
 function getTokenFromCode(auth_code, callback, response) {
   var token;
-  oauth2.authCode.getToken({
+  oauth2.authorizationCode.getToken({
     code: auth_code,
     redirect_uri: redirectUri,
     scope: scopes.join(' ')
