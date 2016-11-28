@@ -546,7 +546,7 @@ function mail(response, request) {
       response.write('<div><h1>Your inbox</h1></div>');
       
       var queryParams = {
-        '$select': 'Subject,ReceivedDateTime,From',
+        '$select': 'Subject,ReceivedDateTime,From,IsRead',
         '$orderby': 'ReceivedDateTime desc',
         '$top': 10
       };
@@ -556,7 +556,7 @@ function mail(response, request) {
       // Set the anchor mailbox to the user's SMTP address
       outlook.base.setAnchorMailbox(email);
       
-      outlook.mail.getMessages({token: token, odataParams: queryParams},
+      outlook.mail.getMessages({token: token, folderId: 'inbox', odataParams: queryParams},
         function(error, result){
           if (error) {
             console.log('getMessages returned an error: ' + error);
@@ -569,7 +569,7 @@ function mail(response, request) {
               console.log('  Subject: ' + message.Subject);
               var from = message.From ? message.From.EmailAddress.Name : 'NONE';
               response.write('<tr><td>' + from + 
-                '</td><td>' + message.Subject +
+                '</td><td>' + (message.IsRead ? '' : '<b>') + message.Subject + (message.IsRead ? '' : '</b>') +
                 '</td><td>' + message.ReceivedDateTime.toString() + '</td></tr>');
             });
             

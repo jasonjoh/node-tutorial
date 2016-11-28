@@ -142,7 +142,7 @@ function mail(response, request) {
               console.log('  Subject: ' + message.Subject);
               var from = message.From ? message.From.EmailAddress.Name : 'NONE';
               response.write('<tr><td>' + from + 
-                '</td><td>' + (message.IsRead ? "" : "<b>") + message.Subject + (message.IsRead ? " " : "</b>") +
+                '</td><td>' + (message.IsRead ? '' : '<b>') + message.Subject + (message.IsRead ? '' : '</b>') +
                 '</td><td>' + message.ReceivedDateTime.toString() + '</td></tr>');
             });
             
