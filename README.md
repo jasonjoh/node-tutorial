@@ -1,6 +1,6 @@
 # Getting Started with the Outlook Mail API and Node.js #
 
-This sample app is the result of following the tutorial at [https://dev.outlook.com/restapi/tutorial/node](https://dev.outlook.com/restapi/tutorial/node). If you follow that tutorial, you should come up with something fairly close to the code in this repository.
+This sample app is the result of following the tutorial at [https://docs.microsoft.com/en-us/outlook/rest/node-tutorial](https://docs.microsoft.com/en-us/outlook/rest/node-tutorial). If you follow that tutorial, you should come up with something fairly close to the code in this repository.
 
 > **NOTE:** Looking for the version of this tutorial that used the Outlook API directly instead of Microsoft Graph? Check out the `outlook-api` branch. Note that Microsoft recommends using the Microsoft Graph to access mail, calendar, and contacts. You should use the Outlook APIs directly (via https://outlook.office.com/api) only if you require a feature that is not available on the Graph endpoints.
 
@@ -17,17 +17,17 @@ If you didn't follow the tutorial and just want to download this repo and try it
 
 Before we proceed, we need to register our app to obtain a client ID and secret. Head over to https://apps.dev.microsoft.com to quickly get a client ID and secret. Using the sign in buttons, sign in with either your Microsoft account (Outlook.com), or your work or school account (Office 365).
 
-![The Application Registration Portal Sign In Page](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/sign-in.PNG)
+![The Application Registration Portal Sign In Page](readme-images/sign-in.PNG)
 
 Once you're signed in, click the **Add an app** button. Enter `node-tutorial` for the name and click **Create application**. After the app is created, locate the **Application Secrets** section, and click the **Generate New Password** button. Copy the password now and save it to a safe place. Once you've copied the password, click **Ok**.
 
-![The new password dialog.](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/new-password.PNG)
+![The new password dialog.](readme-images/new-password.PNG)
 
 Locate the **Platforms** section, and click **Add Platform**. Choose **Web**, then enter `http://localhost:8000/authorize` under **Redirect URIs**. Click **Save** to complete the registration. Copy the **Application Id** and save it along with the password you copied earlier. We'll need those values soon.
 
 Here's what the details of your app registration should look like when you are done.
 
-![The completed registration properties.](https://raw.githubusercontent.com/jasonjoh/node-tutorial/master/readme-images/node-tutorial.PNG)
+![The completed registration properties.](readme-images/node-tutorial.PNG)
 
 ## Configure the sample
 
