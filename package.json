@@ -11,7 +11,8 @@
     "microsoft"
   ],
   "dependencies": {
-    "node-outlook": "^1.1.6",
+    "@microsoft/microsoft-graph-client": "^0.4.0",
+    "es6-promise": "^4.1.0",
     "simple-oauth2": "^1.0.1"
   }
 }
