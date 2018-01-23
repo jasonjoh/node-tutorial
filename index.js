@@ -51,6 +51,10 @@ function tokenReceived(response, error, token) {
         response.setHeader('Set-Cookie', cookies);
         response.writeHead(302, {'Location': 'http://localhost:8000/mail'});
         response.end();
+      } else {
+        console.log('getUserEmail could not find an email address for user');
+        response.write('No user email address found, cannot continue');
+        response.end();
       }
     }); 
   }
@@ -72,7 +76,10 @@ function getUserEmail(token, callback) {
       if (err) {
         callback(err, null);
       } else {
-        callback(null, res.mail);
+        // Office 365 users have a mail attribute
+        // Outlook.com users do not, instead they have
+        // userPrincipalName
+        callback(null, res.mail ? res.mail : res.userPrincipalName);
       }
     });
 }
