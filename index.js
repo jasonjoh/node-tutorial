@@ -76,7 +76,10 @@ async function getUserEmail(token) {
 		.api('/me')
 		.get();
 
-	return res.mail;
+  // Office 365 users have a mail attribute
+  // Outlook.com users do not, instead they have
+  // userPrincipalName
+	return res.mail ? res.mail : res.userPrincipalName;
 }
 
 function getValueFromCookie(valueName, cookie) {
