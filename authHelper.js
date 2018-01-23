@@ -16,18 +16,18 @@ const redirectUri = 'http://localhost:8000/authorize';
 
 // The scopes the app requires
 const scopes = [ 'openid',
-               'offline_access',
-               'User.Read',
-               'Mail.Read',
-               'Calendars.Read',
-               'Contacts.Read' ];
+                 'offline_access',
+                 'User.Read',
+                 'Mail.Read',
+                 'Calendars.Read',
+                 'Contacts.Read' ];
 
 function getAuthUrl() {
   const returnVal = oauth2.authorizationCode.authorizeURL({
     redirect_uri: redirectUri,
     scope: scopes.join(' ')
   });
-  console.log('Generated auth url: ' + returnVal);
+  console.log(`Generated auth url: ${returnVal}`);
   return returnVal;
 }
 

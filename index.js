@@ -28,14 +28,14 @@ function authorize(response, request) {
   const url_parts = url.parse(request.url, true);
   const code = url_parts.query.code;
   console.log(`Code: ${code}`);
-  tokenReceived(response, code);
+  processAuthCode(response, code);
 }
 
-async function tokenReceived(response, code) {
+async function processAuthCode(response, code) {
   let token,email;
 
   try {
-    token = await authHelper.getTokenFromCode(code, tokenReceived, response);
+    token = await authHelper.getTokenFromCode(code);
   } catch(error){
     console.log('Access token error: ', error.message);
     response.writeHead(200, {'Content-Type': 'text/html'});
@@ -54,9 +54,9 @@ async function tokenReceived(response, code) {
   }
 
   const cookies = [`node-tutorial-token=${token.token.access_token};Max-Age=4000`,
-                 `node-tutorial-refresh-token=${token.token.refresh_token};Max-Age=4000`,
-                 `node-tutorial-token-expires=${token.token.expires_at.getTime()};Max-Age=4000`,
-                 `node-tutorial-email=${email ? email : ''}';Max-Age=4000`];
+                   `node-tutorial-refresh-token=${token.token.refresh_token};Max-Age=4000`,
+                   `node-tutorial-token-expires=${token.token.expires_at.getTime()};Max-Age=4000`,
+                   `node-tutorial-email=${email ? email : ''}';Max-Age=4000`];
   response.setHeader('Set-Cookie', cookies);
   response.writeHead(302, {'Location': 'http://localhost:8000/mail'});
   response.end();
@@ -101,8 +101,8 @@ async function getAccessToken(request, response) {
     const newToken = await authHelper.refreshAccessToken(refresh_token);
 
     const cookies = [`node-tutorial-token=${token.token.access_token};Max-Age=4000`,
-                    `node-tutorial-refresh-token=${token.token.refresh_token};Max-Age=4000`,
-                    `node-tutorial-token-expires=${token.token.expires_at.getTime()};Max-Age=4000`];
+                     `node-tutorial-refresh-token=${token.token.refresh_token};Max-Age=4000`,
+                     `node-tutorial-token-expires=${token.token.expires_at.getTime()};Max-Age=4000`];
     response.setHeader('Set-Cookie', cookies);
     return newToken.token.access_token;
   }
@@ -210,22 +210,22 @@ async function calendar(response, request) {
         .orderby('start/dateTime DESC')
         .get();
 
-    console.log('getEvents returned ' + res.value.length + ' events.');
-    response.write('<table><tr><th>Subject</th><th>Start</th><th>End</th><th>Attendees</th></tr>');
-    res.value.forEach(function(event) {
-      console.log(`  Subject: ${event.subject}`);
-      response.write(`<tr><td>${event.subject}` +
-        `</td><td>${event.start.dateTime.toString()}` +
-        `</td><td>${event.end.dateTime.toString()}` +
-        `</td><td>${buildAttendeeString(event.attendees)}</td></tr>`);
-    });
+      console.log('getEvents returned ' + res.value.length + ' events.');
+      response.write('<table><tr><th>Subject</th><th>Start</th><th>End</th><th>Attendees</th></tr>');
+      res.value.forEach(function(event) {
+        console.log(`  Subject: ${event.subject}`);
+        response.write(`<tr><td>${event.subject}` +
+          `</td><td>${event.start.dateTime.toString()}` +
+          `</td><td>${event.end.dateTime.toString()}` +
+          `</td><td>${buildAttendeeString(event.attendees)}</td></tr>`);
+      });
 
-    response.write('</table>');
-    response.end();
-  } catch(err) {
-    console.log(`getEvents returned an error: ${err}`);
-    response.write(`<p>ERROR: ${err}</p>`);
-  }
+      response.write('</table>');
+      response.end();
+    } catch(err) {
+      console.log(`getEvents returned an error: ${err}`);
+      response.write(`<p>ERROR: ${err}</p>`);
+    }
   } else {
     response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
@@ -263,19 +263,19 @@ async function contacts(response, request) {
           .orderby('givenName ASC')
           .get();
 
-      console.log(`getContacts returned ${res.value.length} contacts.`);
-      response.write('<table><tr><th>First name</th><th>Last name</th><th>Email</th></tr>');
-      res.value.forEach(contact => {
-          const email = contact.emailAddresses[0] ? contact.emailAddresses[0].address : 'NONE';
-          response.write(`<tr><td>${contact.givenName}` +
-              `</td><td>${contact.surname}` +
-              `</td><td>${email}</td></tr>`);
-      });
+        console.log(`getContacts returned ${res.value.length} contacts.`);
+        response.write('<table><tr><th>First name</th><th>Last name</th><th>Email</th></tr>');
+        res.value.forEach(contact => {
+            const email = contact.emailAddresses[0] ? contact.emailAddresses[0].address : 'NONE';
+            response.write(`<tr><td>${contact.givenName}` +
+                `</td><td>${contact.surname}` +
+                `</td><td>${email}</td></tr>`);
+        });
 
-      response.write('</table>');
-  } catch (err){
-    console.log(`getContacts returned an error: ${err}`);
-    response.write(`<p>ERROR: ${err}</p>`);
+        response.write('</table>');
+    } catch (err) {
+      console.log(`getContacts returned an error: ${err}`);
+      response.write(`<p>ERROR: ${err}</p>`);
     }
   } else {
     response.writeHead(200, {'Content-Type': 'text/html'});
