@@ -56,7 +56,7 @@ async function tokenReceived(response, code) {
   const cookies = [`node-tutorial-token=${token.token.access_token};Max-Age=4000`,
                  `node-tutorial-refresh-token=${token.token.refresh_token};Max-Age=4000`,
                  `node-tutorial-token-expires=${token.token.expires_at.getTime()};Max-Age=4000`,
-                 `node-tutorial-email=${email}';Max-Age=4000`];
+                 `node-tutorial-email=${email ? email : ''}';Max-Age=4000`];
   response.setHeader('Set-Cookie', cookies);
   response.writeHead(302, {'Location': 'http://localhost:8000/mail'});
   response.end();
