@@ -13,6 +13,6 @@
   "dependencies": {
     "@microsoft/microsoft-graph-client": "^1.0.0",
     "es6-promise": "^4.1.0",
-    "simple-oauth2": "^1.4.0"
+    "simple-oauth2": "^1.5.0"
   }
 }
