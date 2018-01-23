@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.
 const credentials = {
   client: {
-	  id: 'YOUR APP ID HERE',
-	  secret: 'YOUR APP PASSWORD HERE',
+    id: 'YOUR APP ID HERE',
+    secret: 'YOUR APP PASSWORD HERE',
   },
   auth: {
     tokenHost: 'https://login.microsoftonline.com',
@@ -32,19 +32,19 @@ function getAuthUrl() {
 }
 
 async function getTokenFromCode(auth_code) {
-	let result = await oauth2.authorizationCode.getToken({
-		code: auth_code,
-		redirect_uri: redirectUri,
-		scope: scopes.join(' ')
-	});
+  let result = await oauth2.authorizationCode.getToken({
+    code: auth_code,
+    redirect_uri: redirectUri,
+    scope: scopes.join(' ')
+  });
 
-	const token = oauth2.accessToken.create(result);
-	console.log('Token created: ', token.token);
-	return token;
+  const token = oauth2.accessToken.create(result);
+  console.log('Token created: ', token.token);
+  return token;
 }
 
 function refreshAccessToken(refreshToken) {
-	return oauth2.accessToken.create({refresh_token: refreshToken}).refresh();
+  return oauth2.accessToken.create({refresh_token: refreshToken}).refresh();
 }
 
 exports.getAuthUrl = getAuthUrl;

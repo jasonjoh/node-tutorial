@@ -3,6 +3,7 @@ const server = require('./server');
 const router = require('./router');
 const authHelper = require('./authHelper');
 const microsoftGraph = require("@microsoft/microsoft-graph-client");
+const url = require('url');
 
 const handle = {};
 handle['/'] = home;
@@ -20,10 +21,9 @@ function home(response, request) {
   response.end();
 }
 
-const url = require('url');
 function authorize(response, request) {
   console.log('Request handler \'authorize\' was called.');
-  
+
   // The authorization code is passed as a query parameter
   const url_parts = url.parse(request.url, true);
   const code = url_parts.query.code;
@@ -35,22 +35,22 @@ async function tokenReceived(response, code) {
   let token,email;
 
   try {
-	  token = await authHelper.getTokenFromCode(code, tokenReceived, response);
+    token = await authHelper.getTokenFromCode(code, tokenReceived, response);
   } catch(error){
-	  console.log('Access token error: ', error.message);
-	  response.writeHead(200, {'Content-Type': 'text/html'});
-	  response.write(`<p>ERROR: ${error}</p>`);
-	  response.end();
-	  return;
+    console.log('Access token error: ', error.message);
+    response.writeHead(200, {'Content-Type': 'text/html'});
+    response.write(`<p>ERROR: ${error}</p>`);
+    response.end();
+    return;
   }
 
   try {
-	  email = await getUserEmail(token.token.access_token);
+    email = await getUserEmail(token.token.access_token);
   } catch(error){
-	  console.log(`getUserEmail returned an error: ${error}`);
-	  response.write(`<p>ERROR: ${error}</p>`);
-	  response.end();
-	  return;
+    console.log(`getUserEmail returned an error: ${error}`);
+    response.write(`<p>ERROR: ${error}</p>`);
+    response.end();
+    return;
   }
 
   const cookies = [`node-tutorial-token=${token.token.access_token};Max-Age=4000`,
@@ -63,23 +63,23 @@ async function tokenReceived(response, code) {
 }
 
 async function getUserEmail(token) {
-	// Create a Graph client
-	const client = microsoftGraph.Client.init({
-		authProvider: (done) => {
-			// Just return the token
-			done(null, token);
-		}
-	});
+  // Create a Graph client
+  const client = microsoftGraph.Client.init({
+    authProvider: (done) => {
+      // Just return the token
+      done(null, token);
+    }
+  });
 
-	// Get the Graph /Me endpoint to get user email address
-	const res = await client
-		.api('/me')
-		.get();
+  // Get the Graph /Me endpoint to get user email address
+  const res = await client
+    .api('/me')
+    .get();
 
   // Office 365 users have a mail attribute
   // Outlook.com users do not, instead they have
   // userPrincipalName
-	return res.mail ? res.mail : res.userPrincipalName;
+  return res.mail ? res.mail : res.userPrincipalName;
 }
 
 function getValueFromCookie(valueName, cookie) {
@@ -115,12 +115,12 @@ async function mail(response, request) {
   let token;
 
   try {
-	  token = await getAccessToken(request, response);
+    token = await getAccessToken(request, response);
   } catch (error){
-	  response.writeHead(200, {'Content-Type': 'text/html'});
-	  response.write('<p> No token found in cookie!</p>');
-	  response.end();
-	  return;
+    response.writeHead(200, {'Content-Type': 'text/html'});
+    response.write('<p> No token found in cookie!</p>');
+    response.end();
+    return;
   }
 
   console.log('Token found in cookie: ', token);
@@ -139,29 +139,29 @@ async function mail(response, request) {
   });
 
   try {
-	  // Get the 10 newest messages
-	  const res = await client
-		  .api('/me/mailfolders/inbox/messages')
-		  .header('X-AnchorMailbox', email)
-		  .top(10)
-		  .select('subject,from,receivedDateTime,isRead')
-		  .orderby('receivedDateTime DESC')
-		  .get();
+    // Get the 10 newest messages
+    const res = await client
+      .api('/me/mailfolders/inbox/messages')
+      .header('X-AnchorMailbox', email)
+      .top(10)
+      .select('subject,from,receivedDateTime,isRead')
+      .orderby('receivedDateTime DESC')
+      .get();
 
-	  console.log(`getMessages returned ${res.value.length} messages.`);
-	  response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
-	  res.value.forEach(message => {
-		  console.log('  Subject: ' + message.subject);
-		  const from = message.from ? message.from.emailAddress.name : 'NONE';
-		  response.write(`<tr><td>${from}` +
-			  `</td><td>${message.isRead ? '' : '<b>'} ${message.subject} ${message.isRead ? '' : '</b>'}` +
-			  `</td><td>${message.receivedDateTime.toString()}</td></tr>`);
-	  });
+    console.log(`getMessages returned ${res.value.length} messages.`);
+    response.write('<table><tr><th>From</th><th>Subject</th><th>Received</th></tr>');
+    res.value.forEach(message => {
+      console.log('  Subject: ' + message.subject);
+      const from = message.from ? message.from.emailAddress.name : 'NONE';
+      response.write(`<tr><td>${from}` +
+        `</td><td>${message.isRead ? '' : '<b>'} ${message.subject} ${message.isRead ? '' : '</b>'}` +
+        `</td><td>${message.receivedDateTime.toString()}</td></tr>`);
+    });
 
-	  response.write('</table>');
+    response.write('</table>');
   } catch (err) {
-	  console.log(`getMessages returned an error: ${err}`);
-	  response.write(`<p>ERROR: ${err}</p>`);
+    console.log(`getMessages returned an error: ${err}`);
+    response.write(`<p>ERROR: ${err}</p>`);
   }
 
   response.end();
@@ -210,22 +210,22 @@ async function calendar(response, request) {
         .orderby('start/dateTime DESC')
         .get();
 
-		console.log('getEvents returned ' + res.value.length + ' events.');
-		response.write('<table><tr><th>Subject</th><th>Start</th><th>End</th><th>Attendees</th></tr>');
-		res.value.forEach(function(event) {
-			console.log(`  Subject: ${event.subject}`);
-			response.write(`<tr><td>${event.subject}` +
-				`</td><td>${event.start.dateTime.toString()}` +
-				`</td><td>${event.end.dateTime.toString()}` +
-				`</td><td>${buildAttendeeString(event.attendees)}</td></tr>`);
-		});
+    console.log('getEvents returned ' + res.value.length + ' events.');
+    response.write('<table><tr><th>Subject</th><th>Start</th><th>End</th><th>Attendees</th></tr>');
+    res.value.forEach(function(event) {
+      console.log(`  Subject: ${event.subject}`);
+      response.write(`<tr><td>${event.subject}` +
+        `</td><td>${event.start.dateTime.toString()}` +
+        `</td><td>${event.end.dateTime.toString()}` +
+        `</td><td>${buildAttendeeString(event.attendees)}</td></tr>`);
+    });
 
-		response.write('</table>');
-		response.end();
-	} catch(err) {
-		console.log(`getEvents returned an error: ${err}`);
-		response.write(`<p>ERROR: ${err}</p>`);
-	}
+    response.write('</table>');
+    response.end();
+  } catch(err) {
+    console.log(`getEvents returned an error: ${err}`);
+    response.write(`<p>ERROR: ${err}</p>`);
+  }
   } else {
     response.writeHead(200, {'Content-Type': 'text/html'});
     response.write('<p> No token found in cookie!</p>');
@@ -273,9 +273,9 @@ async function contacts(response, request) {
       });
 
       response.write('</table>');
-	} catch (err){
-		console.log(`getContacts returned an error: ${err}`);
-		response.write(`<p>ERROR: ${err}</p>`);
+  } catch (err){
+    console.log(`getContacts returned an error: ${err}`);
+    response.write(`<p>ERROR: ${err}</p>`);
     }
   } else {
     response.writeHead(200, {'Content-Type': 'text/html'});
