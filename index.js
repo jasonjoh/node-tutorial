@@ -32,7 +32,7 @@ function authorize(response, request) {
 }
 
 async function processAuthCode(response, code) {
-  let token,email;
+  let token;
 
   try {
     token = await authHelper.getTokenFromCode(code);
@@ -44,42 +44,12 @@ async function processAuthCode(response, code) {
     return;
   }
 
-  try {
-    email = await getUserEmail(token.token.access_token);
-  } catch(error){
-    console.log(`getUserEmail returned an error: ${error}`);
-    response.write(`<p>ERROR: ${error}</p>`);
-    response.end();
-    return;
-  }
-
   const cookies = [`node-tutorial-token=${token.token.access_token};Max-Age=4000`,
                    `node-tutorial-refresh-token=${token.token.refresh_token};Max-Age=4000`,
-                   `node-tutorial-token-expires=${token.token.expires_at.getTime()};Max-Age=4000`,
-                   `node-tutorial-email=${email ? email : ''}';Max-Age=4000`];
+                   `node-tutorial-token-expires=${token.token.expires_at.getTime()};Max-Age=4000`];
   response.setHeader('Set-Cookie', cookies);
   response.writeHead(302, {'Location': 'http://localhost:8000/mail'});
   response.end();
-}
-
-async function getUserEmail(token) {
-  // Create a Graph client
-  const client = microsoftGraph.Client.init({
-    authProvider: (done) => {
-      // Just return the token
-      done(null, token);
-    }
-  });
-
-  // Get the Graph /Me endpoint to get user email address
-  const res = await client
-    .api('/me')
-    .get();
-
-  // Office 365 users have a mail attribute
-  // Outlook.com users do not, instead they have
-  // userPrincipalName
-  return res.mail ? res.mail : res.userPrincipalName;
 }
 
 function getValueFromCookie(valueName, cookie) {
@@ -124,8 +94,6 @@ async function mail(response, request) {
   }
 
   console.log('Token found in cookie: ', token);
-  const email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-  console.log('Email found in cookie: ', email);
 
   response.writeHead(200, {'Content-Type': 'text/html'});
   response.write('<div><h1>Your inbox</h1></div>');
@@ -142,7 +110,6 @@ async function mail(response, request) {
     // Get the 10 newest messages
     const res = await client
       .api('/me/mailfolders/inbox/messages')
-      .header('X-AnchorMailbox', email)
       .top(10)
       .select('subject,from,receivedDateTime,isRead')
       .orderby('receivedDateTime DESC')
@@ -185,8 +152,6 @@ function buildAttendeeString(attendees) {
 async function calendar(response, request) {
   const token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
   console.log('Token found in cookie: ', token);
-  const email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-  console.log('Email found in cookie: ', email);
 
   if (token) {
     response.writeHead(200, {'Content-Type': 'text/html'});
@@ -204,7 +169,6 @@ async function calendar(response, request) {
       // Get the 10 events with the greatest start date
       const res = await client
         .api('/me/events')
-        .header('X-AnchorMailbox', email)
         .top(10)
         .select('subject,start,end,attendees')
         .orderby('start/dateTime DESC')
@@ -237,8 +201,6 @@ async function calendar(response, request) {
 async function contacts(response, request) {
   const token = getValueFromCookie('node-tutorial-token', request.headers.cookie);
   console.log('Token found in cookie: ', token);
-  const email = getValueFromCookie('node-tutorial-email', request.headers.cookie);
-  console.log('Email found in cookie: ', email);
 
   if (token) {
     response.writeHead(200, {'Content-Type': 'text/html'});
@@ -257,7 +219,6 @@ async function contacts(response, request) {
       // by given name
       const res = await client
           .api('/me/contacts')
-          .header('X-AnchorMailbox', email)
           .top(10)
           .select('givenName,surname,emailAddresses')
           .orderby('givenName ASC')
