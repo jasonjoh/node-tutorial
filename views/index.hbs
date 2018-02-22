@@ -1,2 +1,9 @@
-<h1>{{title}}</h1>
-<p>Welcome to {{title}}</p>
+<div class="jumbotron">
+  <h1>Node Graph Tutorial</h1>
+  <p class="lead">This sample app shows how to use the Microsoft Graph API to access Outlook data from Node.js</p>
+  {{#if user}}
+    <p>Welcome {{user.displayName}}</p>
+  {{else}}
+    <a class="btn btn-primary btn-large" href="#">Click here to login</a>
+  {{/if}}
+</div>
