@@ -1,0 +1,27 @@
+<h2>Calendar</h2>
+<table class="table">
+  <thead class="thead-light">
+    <th scope="col">Subject</th>
+    <th scope="col">Start</th>
+    <th scope="col">End</th>
+    <th scope="col">Attendees</th>
+  </thead>
+  <tbody>
+    {{#each events}}
+      <tr>
+        <td>{{this.subject}}</td>
+        <td>{{this.start.dateTime}} ({{this.start.timeZone}})</td>
+        <td>{{this.end.dateTime}} ({{this.end.timeZone}})</td>
+        <td>
+          <ul class="list-unstyled">
+            {{#each this.attendees}}
+              <li class="border" title="{{this.emailAddress.address}}">
+                {{this.emailAddress.name}}
+              </li>
+            {{/each}}
+          </ul>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
