@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.
 const credentials = {
   client: {
     id: process.env.APP_ID,

@@ -1,3 +1,4 @@
+// Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
