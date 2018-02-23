@@ -12,8 +12,6 @@ router.get('/', async function(req, res, next) {
   if (accessToken && userName) {
     parms.user = userName;
     parms.debug = `User: ${userName}\nAccess Token: ${accessToken}`;
-
-    // If token was refreshed, save the new values in the session
   } else {
     parms.signInUrl = authHelper.getAuthUrl();
     parms.debug = parms.signInUrl;

@@ -1,0 +1,17 @@
+<h2>Inbox</h2>
+<table class="table">
+  <thead class="thead-light">
+    <th scope="col">From</th>
+    <th scope="col">Subject</th>
+    <th scope="col">Received</th>
+  </thead>
+  <tbody>
+    {{#each messages}}
+      <tr>
+        <td title="{{this.from.emailAddress.address}}">{{this.from.emailAddress.name}}</td>
+        <td>{{this.subject}}</td>
+        <td>{{this.receivedDateTime}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
