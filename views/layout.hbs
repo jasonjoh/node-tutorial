@@ -1,0 +1,74 @@
+{{! Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{title}}</title>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <!-- Nav bar -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+      <a class="navbar-brand" href="/">Node Graph Tutorial</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item{{#if active.home}} active{{/if}}">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          {{#if user}}
+            <li class="nav-item{{#if active.inbox}} active{{/if}}">
+              <a class="nav-link" href="/mail">Inbox</a>
+            </li>
+            <li class="nav-item{{#if active.calendar}} active{{/if}}">
+              <a class="nav-link" href="/calendar">Calendar</a>
+            </li>
+            <li class="nav-item{{#if active.contacts}} active{{/if}}">
+              <a class="nav-link" href="/contacts">Contacts</a>
+            </li>
+          {{/if}}
+        </ul>
+        <ul class="navbar-nav justify-content-end">
+          {{#if user}}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{user}}</a>
+              <div class="dropdown-menu">
+                  <a class="dropdown-item" href="/authorize/signout">Sign Out</a>
+              </div>
+            </li>
+          {{else}}
+            <li class="nav-item">
+              <a class="nav-link" href="{{signInUrl}}">Sign In</a>
+            </li>
+          {{/if}}
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main body -->
+    <main role="main" class="container">
+      {{{body}}}
+
+      <!-- Debug output -->
+      {{#if debug}}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Debug</h5>
+            <pre class="bg-light border p-3"><code>{{debug}}</code></pre>
+          </div>
+        </div>
+      {{/if}}
+    </main>
+    
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  </body>
+</html>

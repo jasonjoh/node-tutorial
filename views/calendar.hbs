@@ -1,0 +1,28 @@
+{{! Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE.txt in the project root for license information.}}
+<h2>Calendar</h2>
+<table class="table">
+  <thead class="thead-light">
+    <th scope="col">Subject</th>
+    <th scope="col">Start</th>
+    <th scope="col">End</th>
+    <th scope="col">Attendees</th>
+  </thead>
+  <tbody>
+    {{#each events}}
+      <tr>
+        <td>{{this.subject}}</td>
+        <td>{{this.start.dateTime}} ({{this.start.timeZone}})</td>
+        <td>{{this.end.dateTime}} ({{this.end.timeZone}})</td>
+        <td>
+          <ul class="list-unstyled">
+            {{#each this.attendees}}
+              <li class="border p-1" title="{{this.emailAddress.address}}">
+                {{this.emailAddress.name}}
+              </li>
+            {{/each}}
+          </ul>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
