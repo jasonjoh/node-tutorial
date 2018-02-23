@@ -1,0 +1,25 @@
+<h2>Contacts</h2>
+<table class="table">
+  <thead class="thead-light">
+    <th scope="col">First name</th>
+        <th scope="col">Last name</th>
+        <th scope="col">Email addresses</th>
+  </thead>
+  <tbody>
+    {{#each contacts}}
+      <tr>
+        <td>{{this.givenName}}</td>
+        <td>{{this.surname}}</td>
+        <td>
+          <ul class="list-unstyled">
+            {{#each this.emailAddresses}}
+              <li class="border p-1">
+                {{this.address}}
+              </li>
+            {{/each}}
+          </ul>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
