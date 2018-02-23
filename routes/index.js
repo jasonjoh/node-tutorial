@@ -3,9 +3,23 @@ var router = express.Router();
 var authHelper = require('../helpers/auth');
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  const signInUrl = authHelper.getAuthUrl();
-  res.render('index', { title: 'Home', signInUrl: signInUrl });
+router.get('/', async function(req, res, next) {
+  let parms = { title: 'Home', active: { home: true } };
+
+  const accessToken = await authHelper.getAccessToken(req.cookies, res);
+  const userName = req.cookies.graph_user_name;
+
+  if (accessToken && userName) {
+    parms.user = userName;
+    parms.debug = `User: ${userName}\nAccess Token: ${accessToken}`;
+
+    // If token was refreshed, save the new values in the session
+  } else {
+    parms.signInUrl = authHelper.getAuthUrl();
+    parms.debug = parms.signInUrl;
+  }
+
+  res.render('index', parms);
 });
 
 module.exports = router;

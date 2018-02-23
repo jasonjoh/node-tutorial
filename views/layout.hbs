@@ -17,11 +17,11 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+          <li class="nav-item{{#if active.home}} active{{/if}}">
+            <a class="nav-link" href="/">Home</a>
           </li>
           {{#if user}}
-            <li class="nav-item">
+            <li class="nav-item{{#if active.inbox}} active{{/if}}">
               <a class="nav-link" href="/mail">Inbox</a>
             </li>
           {{/if}}
@@ -29,9 +29,9 @@
         <ul class="navbar-nav justify-content-end">
           {{#if user}}
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{user.displayName}}</a>
+              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">{{user}}</a>
               <div class="dropdown-menu">
-                  <a class="dropdown-item" href="/signout">Sign Out</a>
+                  <a class="dropdown-item" href="/authorize/signout">Sign Out</a>
               </div>
             </li>
           {{else}}
@@ -49,7 +49,12 @@
 
       <!-- Debug output -->
       {{#if debug}}
-        <pre class="bg-light border p-3"><code>{{debug}}</code></pre>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Debug</h5>
+            <pre class="bg-light border p-3"><code>{{debug}}</code></pre>
+          </div>
+        </div>
       {{/if}}
     </main>
     
