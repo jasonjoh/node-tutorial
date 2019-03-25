@@ -10,16 +10,13 @@ router.get('/', async function(req, res, next) {
 
   // If code is present, use it
   if (code) {
-    let token;
-
     try {
-      token = await authHelper.getTokenFromCode(code, res);
+      await authHelper.getTokenFromCode(code, res);
+      // Redirect to home
+      res.redirect('/');
     } catch (error) {
       res.render('error', { title: 'Error', message: 'Error exchanging code for token', error: error });
     }
-
-    // Redirect to home
-    res.redirect('/');
   } else {
     // Otherwise complain
     res.render('error', { title: 'Error', message: 'Authorization error', error: { status: 'Missing code parameter' } });
