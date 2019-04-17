@@ -13,6 +13,7 @@ var authorize = require('./routes/authorize');
 var mail = require('./routes/mail');
 var calendar = require('./routes/calendar');
 var contacts = require('./routes/contacts');
+var tasks = require('./routes/tasks');
 
 var app = express();
 
@@ -33,6 +34,7 @@ app.use('/authorize', authorize);
 app.use('/mail', mail);
 app.use('/calendar', calendar);
 app.use('/contacts', contacts);
+app.use('/tasks', tasks);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
