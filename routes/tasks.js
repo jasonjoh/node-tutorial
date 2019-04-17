@@ -15,8 +15,7 @@ router.get('/', async function(req, res, next) {
     parms.user = userName;
 
     // Initialize Graph client
-    const client = graph.Client.init({
-        baseUrl:'https://graph.microsoft.com/beta',
+    const client = graph.Client.init({        
       authProvider: (done) => {
         done(null, accessToken);
       }
@@ -26,12 +25,15 @@ router.get('/', async function(req, res, next) {
         console.log(client);
       // Get the 10 newest messages from inbox
       const result = await client
-      .api('/me/outlook/tasks')         
+      .api('/me/outlook/tasks')
+      .version('beta')   
+      .select('subject,owner,status')      
       .get();
-      console.log(result);
+     {{result.value}}
+      
 
-      parms.messages = result.value;
-      res.render('mail', parms);
+      parms.tasks = result.value;
+      res.render('tasks', parms);
     } catch (err) {
       parms.message = 'Error retrieving messages';
       parms.error = { status: `${err.code}: ${err.message}` };
